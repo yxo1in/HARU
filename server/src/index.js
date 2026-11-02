@@ -2,14 +2,18 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
+const pool = require('./db'); // MySQL 커넥션 풀
+
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', name: 'HARU' });
+// 서버 + DB 연결 상태 확인
+app.get('/api/health', async (req, res) => {
+  await pool.query('SELECT 1');
+  res.json({ status: 'ok', name: 'HARU', db: 'connected' });
 });
 
 app.use((req, res) => {
