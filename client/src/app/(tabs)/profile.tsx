@@ -1,7 +1,9 @@
 import { Image } from "expo-image";
-import { Fragment } from "react";
+import { router } from "expo-router";
+import { Fragment, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ScreenHeader } from "@/components/screen-header";
+import { ThemeSheet } from "@/components/theme-sheet";
 import { darkColors, radius, spacing, typography } from "@/constants/theme";
 
 // API 연동 전까지 쓰는 Figma 예시 데이터
@@ -9,7 +11,6 @@ const SETTINGS = [
   { label: "희망 직무", value: "백엔드" },
   { label: "닉네임", value: "기진" },
   { label: "비밀번호 변경" },
-  { label: "화면 테마", value: "시간대별" },
 ];
 
 type ListRowProps = {
@@ -17,11 +18,12 @@ type ListRowProps = {
   value?: string;
   chevron?: boolean;
   danger?: boolean;
+  onPress?: () => void;
 };
 
-function ListRow({ label, value, chevron, danger }: ListRowProps) {
+function ListRow({ label, value, chevron, danger, onPress }: ListRowProps) {
   return (
-    <Pressable style={styles.row} accessibilityRole="button">
+    <Pressable style={styles.row} accessibilityRole="button" onPress={onPress}>
       <Text style={danger ? styles.rowLabelDanger : styles.rowLabel}>{label}</Text>
       <View style={styles.rowRight}>
         {value ? <Text style={styles.rowValue}>{value}</Text> : null}
@@ -37,6 +39,9 @@ function ListRow({ label, value, chevron, danger }: ListRowProps) {
 }
 
 export default function Profile() {
+  const [theme, setTheme] = useState("시간대별");
+  const [themeSheetOpen, setThemeSheetOpen] = useState(false);
+
   return (
     <View style={styles.container}>
       <ScreenHeader title="프로필" />
@@ -45,7 +50,7 @@ export default function Profile() {
         <View style={styles.profile}>
           <View style={styles.avatar}>
             <Image
-              source={require("@/assets/images/mascot/haru-profile.svg")}
+              source={require("@/assets/images/mascot/haru-profile.png")}
               style={styles.haru}
             />
           </View>
@@ -62,14 +67,31 @@ export default function Profile() {
               <ListRow {...item} chevron />
             </Fragment>
           ))}
+          <View style={styles.divider} />
+          <ListRow
+            label="화면 테마"
+            value={theme}
+            chevron
+            onPress={() => setThemeSheetOpen(true)}
+          />
         </View>
 
         <View style={styles.card}>
-          <ListRow label="로그아웃" />
+          <ListRow label="로그아웃" onPress={() => router.replace("/")} />
           <View style={styles.divider} />
           <ListRow label="회원 탈퇴" danger />
         </View>
       </ScrollView>
+
+      <ThemeSheet
+        visible={themeSheetOpen}
+        selected={theme}
+        onSelect={(label) => {
+          setTheme(label);
+          setThemeSheetOpen(false);
+        }}
+        onClose={() => setThemeSheetOpen(false)}
+      />
     </View>
   );
 }
