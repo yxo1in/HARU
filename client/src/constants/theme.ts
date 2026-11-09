@@ -1,65 +1,138 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+export const palette = {
+  white: "#ffffff",
+  neutral900: "#141414",
+  violet200: "#ffe68a",
+} as const;
 
-import '@/global.css';
-
-import { Platform } from 'react-native';
-
-export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+export const colors = {
+  textPrimary: "#141414",
+  textInverse: "#ffffff",
+  bgInverse: "#141414",
+  bgSky: "#e3f0ff",
+  accent: "#ffc000",
+  mascot: {
+    top: "#fff4b8",
+    mid: "#ffdb4d",
+    bottom: "#ffbe1a",
+    shade: "#d98a0038",
+    glow: "#ffcf5a00",
+    ray: "#ffc83d",
+    cheek: "#ff8a5b",
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+export const darkColors = {
+  bgPrimary: "#1b1d38",
+  bgSecondary: "#0f1022",
+  bgHeader: "#1b1d38",
+  textPrimary: "#f2f1fa",
+  textTertiary: "#8e8da8",
+  textBrand: "#ffd15c",
+  borderDefault: "#30335a",
+  borderStrong: "#41456e",
+  borderFocus: "#ffe07f",
+  bgTertiary: "#24274a",
+  bgBrandSubtle: "#2b2a47",
+  textSecondary: "#bdbcd3",
+  textAccent: "#ffe07f",
+  textDanger: "#ffafa6",
+  textOnAccent: "#0f1022",
+  accentStrong: "#ffd15c",
+  mascotFace: "#141414",
+  mascotTop: "#fffbea",
+  mascotMid: "#fff0bf",
+  mascotBottom: "#f3d98a",
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  "2xl": 32,
+} as const;
+
+export const radius = {
+  none: 0,
+  md: 12,
+  lg: 20,
+  full: 9999,
+} as const;
+
+export const fontFamily = {
+  base: "Pretendard",
+} as const;
+
+export const typography = {
+  display: {
+    fontFamily: fontFamily.base,
+    fontSize: 40,
+    fontWeight: "900",
+    lineHeight: 50,
+    letterSpacing: -1.2, // Figma -3% × 40
+  },
+  h2: {
+    fontFamily: fontFamily.base,
+    fontSize: 30,
+    fontWeight: "700",
+    lineHeight: 38,
+    letterSpacing: 0,
+  },
+  h3: {
+    fontFamily: fontFamily.base,
+    fontSize: 24,
+    fontWeight: "700",
+    lineHeight: 32,
+    letterSpacing: 0,
+  },
+  h4: {
+    fontFamily: fontFamily.base,
+    fontSize: 20,
+    fontWeight: "700",
+    lineHeight: 28,
+    letterSpacing: 0,
+  },
+  bodyMedium: {
+    fontFamily: fontFamily.base,
+    fontSize: 16,
+    fontWeight: "400",
+    lineHeight: 24,
+    letterSpacing: 0,
+  },
+  bodySmall: {
+    fontFamily: fontFamily.base,
+    fontSize: 14,
+    fontWeight: "400",
+    lineHeight: 20,
+    letterSpacing: 0,
+  },
+  caption: {
+    fontFamily: fontFamily.base,
+    fontSize: 12,
+    fontWeight: "400",
+    lineHeight: 16,
+    letterSpacing: 0,
+  },
+  labelLarge: {
+    fontFamily: fontFamily.base,
+    fontSize: 16,
+    fontWeight: "500",
+    lineHeight: 24,
+    letterSpacing: 0,
+  },
+  labelSmall: {
+    fontFamily: fontFamily.base,
+    fontSize: 12,
+    fontWeight: "500",
+    lineHeight: 16,
+    letterSpacing: 0,
+  },
+  labelMedium: {
+    fontFamily: fontFamily.base,
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 20,
+    letterSpacing: 0,
+  },
+} as const;
