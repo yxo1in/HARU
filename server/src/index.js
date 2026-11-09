@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
 const pool = require('./db'); // MySQL 커넥션 풀
 
 const app = express();
@@ -15,6 +18,11 @@ app.get('/api/health', async (req, res) => {
   await pool.query('SELECT 1');
   res.json({ status: 'ok', name: 'HARU', db: 'connected' });
 });
+
+// API 문서 (Swagger UI)
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+app.use('/api/auth', require('./routes/auth'));
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });
