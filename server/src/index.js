@@ -23,6 +23,7 @@ app.get('/api/health', async (req, res) => {
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/job-roles', require('./routes/jobRoles'));
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });

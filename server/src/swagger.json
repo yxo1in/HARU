@@ -16,7 +16,7 @@
                 "required": ["login_id", "password", "nickname"],
                 "properties": {
                   "login_id": { "type": "string", "example": "test1" },
-                  "password": { "type": "string", "example": "1234" },
+                  "password": { "type": "string", "example": "haru1234" },
                   "nickname": { "type": "string", "example": "tester" },
                   "job_role_id": { "type": "integer", "nullable": true }
                 }
@@ -28,6 +28,15 @@
           "201": { "description": "가입 성공" },
           "400": { "description": "입력값 오류" },
           "409": { "description": "아이디 또는 닉네임 중복" }
+        }
+      }
+    },
+    "/api/job-roles": {
+      "get": {
+        "tags": ["job-roles"],
+        "summary": "직무 목록",
+        "responses": {
+          "200": { "description": "sort_order 오름차순 직무 목록" }
         }
       }
     }
