@@ -1,13 +1,23 @@
 import { Stack } from "expo-router";
-import { darkColors } from "@/constants/theme";
+import { ThemeProvider, useTheme } from "@/components/theme-provider";
 
-export default function RootLayout() {
+function RootStack() {
+  const { colors } = useTheme();
+
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: darkColors.bgSecondary },
+        contentStyle: { backgroundColor: colors.bgSecondary },
       }}
     />
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootStack />
+    </ThemeProvider>
   );
 }

@@ -14,16 +14,19 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HaruBubble, HaruMessages, QuestionBubble } from "@/components/chat-bubble";
 import { Chip } from "@/components/chip";
 import { NavBar } from "@/components/nav-bar";
-import { darkColors, fontFamily, radius, spacing, typography } from "@/constants/theme";
+import { fontFamily, noWebOutline, radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
 const MAX_LENGTH = 1000;
-// API 연동 전까지 쓰는 Figma 예시 답변
-const SAMPLE_ANSWER = "저는 사람들이 매일 쓰는 서비스를 만들고 싶어서 지원했습니다. 특히 귀사의";
 
 export default function Answer() {
+  const styles = useThemedStyles(createStyles);
+  const { assets, colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const [answer, setAnswer] = useState(SAMPLE_ANSWER);
+  const [answer, setAnswer] = useState("");
+  const trimmedAnswer = answer.trim();
   const [tipSelected, setTipSelected] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
@@ -53,11 +56,15 @@ export default function Answer() {
           <Chip label="다른 질문 받기" onPress={() => router.replace("/generating")} />
         </View>
         <View style={styles.inputRow}>
-          <View style={styles.field}>
+          <View style={[styles.field, focused && styles.fieldFocused]}>
             <TextInput
               style={styles.input}
               value={answer}
               onChangeText={setAnswer}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder="답변을 입력해 주세요"
+              placeholderTextColor={colors.textTertiary}
               maxLength={MAX_LENGTH}
               multiline
             />
@@ -66,12 +73,15 @@ export default function Answer() {
             </Text>
           </View>
           <Pressable
-            style={styles.send}
+            style={[styles.send, !trimmedAnswer && styles.sendDisabled]}
             accessibilityRole="button"
             accessibilityLabel="답변 보내기"
-            onPress={() => router.replace("/feedback")}
+            disabled={!trimmedAnswer}
+            onPress={() =>
+              router.replace({ pathname: "/feedback", params: { answer: trimmedAnswer } })
+            }
           >
-            <Image source={require("@/assets/images/icons/send.svg")} style={styles.sendIcon} />
+            <Image source={assets.send} style={styles.sendIcon} />
           </Pressable>
         </View>
       </View>
@@ -79,10 +89,10 @@ export default function Answer() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
   },
   scroll: {
     flex: 1,
@@ -96,15 +106,15 @@ const styles = StyleSheet.create({
   date: {
     ...typography.caption,
     textAlign: "center",
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   composer: {
     gap: spacing.sm,
     paddingTop: spacing.md,
     paddingHorizontal: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: darkColors.borderDefault,
-    backgroundColor: darkColors.bgPrimary,
+    borderTopColor: colors.borderDefault,
+    backgroundColor: colors.bgPrimary,
   },
   quickActions: {
     flexDirection: "row",
@@ -123,9 +133,12 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
     paddingHorizontal: spacing.lg,
     borderWidth: 1.5,
-    borderColor: darkColors.borderFocus,
+    borderColor: colors.borderDefault,
     borderRadius: radius.lg,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
+  },
+  fieldFocused: {
+    borderColor: colors.borderFocus,
   },
   input: {
     minHeight: 48,
@@ -134,14 +147,14 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.base,
     fontSize: 16,
     lineHeight: 24,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
     textAlignVertical: "top",
-    outlineWidth: 0,
+    ...noWebOutline,
   },
   counter: {
     ...typography.caption,
     textAlign: "right",
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   send: {
     width: 48,
@@ -149,7 +162,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radius.full,
-    backgroundColor: darkColors.accentStrong,
+    backgroundColor: colors.actionDefault,
+  },
+  sendDisabled: {
+    opacity: 0.4,
   },
   sendIcon: {
     width: 24,

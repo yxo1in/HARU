@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 type ChipProps = {
   label: string;
@@ -8,6 +9,7 @@ type ChipProps = {
 };
 
 export function Chip({ label, selected, onPress }: ChipProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       style={[styles.chip, selected && styles.selected]}
@@ -20,27 +22,27 @@ export function Chip({ label, selected, onPress }: ChipProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   chip: {
     height: 44,
     justifyContent: "center",
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: darkColors.borderDefault,
+    borderColor: colors.borderDefault,
     borderRadius: radius.full,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
   },
   selected: {
     borderWidth: 1.5,
-    borderColor: darkColors.borderFocus,
-    backgroundColor: darkColors.bgBrandSubtle,
+    borderColor: colors.borderFocus,
+    backgroundColor: colors.bgBrandSubtle,
   },
   label: {
     ...typography.labelMedium,
-    color: darkColors.textSecondary,
+    color: colors.textSecondary,
   },
   labelSelected: {
     ...typography.labelMedium,
-    color: darkColors.textBrand,
+    color: colors.textBrand,
   },
 });

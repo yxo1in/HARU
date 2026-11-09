@@ -6,11 +6,12 @@ import { Button } from "@/components/button";
 import { Chip } from "@/components/chip";
 import { NavBar } from "@/components/nav-bar";
 import { TextField } from "@/components/text-field";
-import { darkColors, spacing, typography } from "@/constants/theme";
-
-const JOBS = ["프론트엔드", "백엔드", "모바일 앱", "데이터 분석", "UI/UX", "서비스 기획"];
+import { JOBS } from "@/constants/jobs";
+import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 export default function SignUp() {
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const [job, setJob] = useState("백엔드");
 
@@ -55,10 +56,10 @@ export default function SignUp() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
   },
   scroll: {
     flex: 1,
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h3,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   form: {
     gap: spacing.xl,
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
   },
   jobLabel: {
     ...typography.labelMedium,
-    color: darkColors.textSecondary,
+    color: colors.textSecondary,
   },
   chips: {
     flexDirection: "row",
@@ -98,6 +99,6 @@ const styles = StyleSheet.create({
   },
   terms: {
     ...typography.caption,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
 });

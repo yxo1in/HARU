@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useRef } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,9 +7,16 @@ import { HaruBubble, HaruMessages, MyBubble, QuestionBubble } from "@/components
 import { FeedbackList } from "@/components/feedback-list";
 import { NavBar } from "@/components/nav-bar";
 import { ScoreSummary } from "@/components/score-summary";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
+
+// 답변 없이 이 화면을 바로 열었을 때 보여주는 Figma 예시 답변
+const SAMPLE_ANSWER =
+  "저는 사람들이 매일 쓰는 서비스를 만들고 싶어서 지원했습니다. 특히 귀사의 추천 기능을 쓰면서 개발자로 참여하고 싶다고 느꼈어요.";
 
 export default function Feedback() {
+  const styles = useThemedStyles(createStyles);
+  const { answer } = useLocalSearchParams<{ answer?: string }>();
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
 
@@ -29,10 +36,7 @@ export default function Feedback() {
             text={"우리 회사에 지원한\n이유는 무엇인가요?"}
           />
         </HaruMessages>
-        <MyBubble
-          text="저는 사람들이 매일 쓰는 서비스를 만들고 싶어서 지원했습니다. 특히 귀사의 추천 기능을 쓰면서 개발자로 참여하고 싶다고 느꼈어요."
-          time="오후 3:24"
-        />
+        <MyBubble text={answer ?? SAMPLE_ANSWER} time="오후 3:24" />
         <HaruMessages>
           <HaruBubble text="피드백을 정리했어요" />
           <View style={styles.card}>
@@ -60,10 +64,10 @@ export default function Feedback() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
   },
   scroll: {
     flex: 1,
@@ -78,7 +82,7 @@ const styles = StyleSheet.create({
   date: {
     ...typography.caption,
     textAlign: "center",
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   card: {
     alignSelf: "stretch",
@@ -88,12 +92,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.lg,
     borderBottomLeftRadius: radius.lg,
     borderBottomRightRadius: radius.lg,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
     boxShadow: "0px 1px 2px rgba(0,0,0,0.05)",
   },
   divider: {
     height: 1,
-    backgroundColor: darkColors.borderDefault,
+    backgroundColor: colors.borderDefault,
   },
   actions: {
     flexDirection: "row",
@@ -101,8 +105,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingHorizontal: spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: darkColors.borderDefault,
-    backgroundColor: darkColors.bgPrimary,
+    borderTopColor: colors.borderDefault,
+    backgroundColor: colors.bgPrimary,
   },
   // 버튼 폭이 좁아서 긴 문구가 잘리지 않게 좌우 여백을 줄임
   action: {

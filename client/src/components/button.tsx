@@ -1,10 +1,12 @@
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 type ButtonProps = {
   label: string;
   variant?: "primary" | "secondary" | "ghost";
   size?: "lg" | "sm";
+  disabled?: boolean;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
 };
@@ -13,13 +15,16 @@ export function Button({
   label,
   variant = "primary",
   size = "lg",
+  disabled,
   onPress,
   style,
 }: ButtonProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
-      style={[styles.base, styles[size], styles[variant], style]}
+      style={[styles.base, styles[size], styles[variant], disabled && styles.disabled, style]}
       accessibilityRole="button"
+      disabled={disabled}
       onPress={onPress}
     >
       <Text
@@ -37,7 +42,7 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   base: {
     alignItems: "center",
     justifyContent: "center",
@@ -54,14 +59,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   primary: {
-    backgroundColor: darkColors.accentStrong,
+    backgroundColor: colors.actionDefault,
   },
   secondary: {
     borderWidth: 1,
-    borderColor: darkColors.borderStrong,
-    backgroundColor: darkColors.bgPrimary,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.bgPrimary,
   },
   ghost: {},
+  disabled: {
+    opacity: 0.4,
+  },
   labelLg: {
     ...typography.labelLarge,
   },
@@ -69,12 +77,12 @@ const styles = StyleSheet.create({
     ...typography.labelMedium,
   },
   labelPrimary: {
-    color: darkColors.textOnAccent,
+    color: colors.textOnAccent,
   },
   labelSecondary: {
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   labelGhost: {
-    color: darkColors.textBrand,
+    color: colors.textBrand,
   },
 });

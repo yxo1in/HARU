@@ -2,9 +2,10 @@ import { StatusBar } from "expo-status-bar";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { darkColors, spacing, typography } from "@/constants/theme";
+import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
-const HEADER_HEIGHT = 52;
+const HEADER_HEIGHT = 64;
 
 type ScreenHeaderProps = {
   title?: string;
@@ -12,6 +13,8 @@ type ScreenHeaderProps = {
 };
 
 export function ScreenHeader({ title, children }: ScreenHeaderProps) {
+  const styles = useThemedStyles(createStyles);
+  const { scheme } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
@@ -21,25 +24,25 @@ export function ScreenHeader({ title, children }: ScreenHeaderProps) {
         { paddingTop: insets.top, height: HEADER_HEIGHT + insets.top },
       ]}
     >
-      <StatusBar style="light" />
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
       {title ? <Text style={styles.title}>{title}</Text> : null}
       {children}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: spacing.xl,
     borderBottomWidth: 1,
-    borderBottomColor: darkColors.borderDefault,
-    backgroundColor: darkColors.bgHeader,
+    borderBottomColor: colors.borderDefault,
+    backgroundColor: colors.bgHeader,
   },
   title: {
     ...typography.h2,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
 });

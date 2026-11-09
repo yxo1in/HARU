@@ -3,11 +3,13 @@ import { router } from "expo-router";
 import { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import { StatusScreen } from "@/components/status-screen";
+import { useTheme } from "@/components/theme-provider";
 
 // API 연동 전까지 생성이 끝난 것처럼 잠깐 보여주고 답변 화면으로 넘어감
 const MOCK_GENERATING_MS = 2000;
 
 export default function Generating() {
+  const { assets } = useTheme();
   useEffect(() => {
     const timer = setTimeout(() => router.replace("/answer"), MOCK_GENERATING_MS);
     return () => clearTimeout(timer);
@@ -15,10 +17,10 @@ export default function Generating() {
 
   return (
     <StatusScreen
-      mascot={require("@/assets/images/mascot/haru-thinking.png")}
+      mascot={assets.haruThinking}
       mascotOverlay={
         <Image
-          source={require("@/assets/images/mascot/thinking-dots.png")}
+          source={assets.thinkingDots}
           style={styles.dots}
         />
       }
@@ -31,7 +33,7 @@ export default function Generating() {
 const styles = StyleSheet.create({
   dots: {
     position: "absolute",
-    left: 140.5,
+    left: 150,
     top: 26,
     width: 74,
     height: 42,

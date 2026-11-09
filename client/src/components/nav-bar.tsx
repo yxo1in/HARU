@@ -3,9 +3,10 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { darkColors, spacing, typography } from "@/constants/theme";
+import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
-const NAV_HEIGHT = 48;
+const NAV_HEIGHT = 56;
 
 function goBack() {
   if (router.canGoBack()) {
@@ -16,13 +17,15 @@ function goBack() {
 }
 
 export function NavBar({ title }: { title?: string }) {
+  const styles = useThemedStyles(createStyles);
+  const { assets, scheme } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
     <View
       style={[styles.bar, { paddingTop: insets.top, height: NAV_HEIGHT + insets.top }]}
     >
-      <StatusBar style="light" />
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
       <Pressable
         style={styles.side}
         accessibilityRole="button"
@@ -30,7 +33,7 @@ export function NavBar({ title }: { title?: string }) {
         onPress={goBack}
       >
         <Image
-          source={require("@/assets/images/icons/chevron-left.svg")}
+          source={assets.chevronLeft}
           style={styles.icon}
         />
       </Pressable>
@@ -40,7 +43,7 @@ export function NavBar({ title }: { title?: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   bar: {
     flexDirection: "row",
     alignItems: "center",
@@ -48,8 +51,8 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
     paddingRight: spacing.xl,
     borderBottomWidth: 1,
-    borderBottomColor: darkColors.borderDefault,
-    backgroundColor: darkColors.bgHeader,
+    borderBottomColor: colors.borderDefault,
+    backgroundColor: colors.bgHeader,
   },
   side: {
     width: 44,
@@ -64,6 +67,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.labelLarge,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
 });

@@ -1,7 +1,8 @@
 import { Image, type ImageSource } from "expo-image";
 import type { TabTriggerSlotProps } from "expo-router/ui";
 import { Pressable, StyleSheet, Text } from "react-native";
-import { darkColors, typography } from "@/constants/theme";
+import { typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 type TabButtonProps = TabTriggerSlotProps & {
   label: string;
@@ -17,6 +18,7 @@ export function TabButton({
   style: _style,
   ...props
 }: TabButtonProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       {...props}
@@ -30,7 +32,7 @@ export function TabButton({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   tab: {
     width: 64,
     height: 48,
@@ -44,10 +46,10 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.caption,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   labelActive: {
     ...typography.labelSmall,
-    color: darkColors.textBrand,
+    color: colors.textBrand,
   },
 });

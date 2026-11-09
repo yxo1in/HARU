@@ -1,12 +1,15 @@
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
 export function JobPill({ job }: { job: string }) {
+  const styles = useThemedStyles(createStyles);
+  const { assets } = useTheme();
   return (
     <View style={styles.pill}>
       <Image
-        source={require("@/assets/images/icons/job.svg")}
+        source={assets.job}
         style={styles.jobIcon}
       />
       <Text style={styles.jobLabel}>{job}</Text>
@@ -15,6 +18,7 @@ export function JobPill({ job }: { job: string }) {
 }
 
 export function StreakPill({ days }: { days: number }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.pill}>
       <View style={styles.face}>
@@ -26,7 +30,7 @@ export function StreakPill({ days }: { days: number }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   pill: {
     flexDirection: "row",
     alignItems: "center",
@@ -36,9 +40,9 @@ const styles = StyleSheet.create({
     paddingRight: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: darkColors.borderDefault,
+    borderColor: colors.borderDefault,
     borderRadius: radius.full,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
   },
   jobIcon: {
     width: 19.92,
@@ -46,13 +50,13 @@ const styles = StyleSheet.create({
   },
   jobLabel: {
     ...typography.labelMedium,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   face: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: darkColors.accentStrong,
+    backgroundColor: colors.accentStrong,
   },
   eye: {
     position: "absolute",
@@ -60,7 +64,7 @@ const styles = StyleSheet.create({
     width: 3,
     height: 7,
     borderRadius: 1.5,
-    backgroundColor: darkColors.mascotFace,
+    backgroundColor: colors.mascotFace,
   },
   eyeLeft: {
     left: 7,
@@ -70,6 +74,6 @@ const styles = StyleSheet.create({
   },
   streakLabel: {
     ...typography.labelLarge,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
 });

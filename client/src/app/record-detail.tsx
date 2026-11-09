@@ -6,9 +6,11 @@ import { FeedbackList } from "@/components/feedback-list";
 import { NavBar } from "@/components/nav-bar";
 import { ScoreSummary } from "@/components/score-summary";
 import { SectionHeader } from "@/components/section-header";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 export default function RecordDetail() {
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
 
   return (
@@ -57,10 +59,10 @@ export default function RecordDetail() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
   },
   scroll: {
     flex: 1,
@@ -82,19 +84,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radius.full,
-    backgroundColor: darkColors.bgBrandSubtle,
+    backgroundColor: colors.bgBrandSubtle,
   },
   badgeText: {
     ...typography.labelSmall,
-    color: darkColors.textBrand,
+    color: colors.textBrand,
   },
   date: {
     ...typography.labelSmall,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   title: {
     ...typography.h2,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   section: {
     gap: spacing.md,
@@ -103,12 +105,12 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: darkColors.borderDefault,
+    borderColor: colors.borderDefault,
     borderRadius: radius.lg,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
   },
   answer: {
     ...typography.bodyMedium,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
 });

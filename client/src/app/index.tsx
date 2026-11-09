@@ -4,7 +4,8 @@ import { StatusBar } from "expo-status-bar";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
 // Figma Actions(265)에서 홈 인디케이터(34)를 뺀 높이
 const ACTIONS_CONTENT_HEIGHT = 231;
@@ -17,6 +18,7 @@ type SocialButtonProps = {
 };
 
 function SocialButton({ icon, label, primary, onPress }: SocialButtonProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       style={[styles.social, primary ? styles.socialPrimary : styles.socialDefault]}
@@ -30,33 +32,35 @@ function SocialButton({ icon, label, primary, onPress }: SocialButtonProps) {
 }
 
 export default function Index() {
+  const styles = useThemedStyles(createStyles);
+  const { assets, scheme } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
       <View style={[styles.hero, { paddingTop: insets.top }]}>
         <Image
-          source={require("@/assets/images/mascot/welcome-blobs.png")}
+          source={assets.welcomeBlobs}
           style={styles.blobs}
         />
         <View style={styles.intro}>
           <Image
-            source={require("@/assets/images/logo-dark.svg")}
+            source={assets.logo}
             style={styles.logo}
             accessibilityLabel="haru"
           />
           <View style={styles.headline}>
             <Text style={styles.headlineText}>{"하루 한 번,\n면접 연습."}</Text>
             <Image
-              source={require("@/assets/images/doodle-underline-dark.svg")}
+              source={assets.doodle}
               style={styles.doodleUnderline}
             />
           </View>
         </View>
         <View style={styles.mascot}>
           <Image
-            source={require("@/assets/images/mascot/haru-welcome.png")}
+            source={assets.haruWelcome}
             style={styles.haru}
           />
           <View style={styles.speechBubble}>
@@ -69,12 +73,12 @@ export default function Index() {
         style={[styles.actions, { height: ACTIONS_CONTENT_HEIGHT + insets.bottom }]}
       >
         <SocialButton
-          icon={require("@/assets/images/icons/google.svg")}
+          icon={assets.google}
           label="Google로 로그인"
           onPress={() => router.replace("/home")}
         />
         <SocialButton
-          icon={require("@/assets/images/icons/id.svg")}
+          icon={assets.id}
           label="아이디로 로그인"
           primary
           onPress={() => router.push("/login")}
@@ -90,15 +94,15 @@ export default function Index() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
   },
   hero: {
     flex: 1,
     overflow: "hidden",
-    backgroundColor: darkColors.bgSky,
+    backgroundColor: colors.bgSky,
   },
   // Figma에서 Hero 위로 110만큼 올라가 있는 번짐 배경
   blobs: {
@@ -123,7 +127,7 @@ const styles = StyleSheet.create({
   },
   headlineText: {
     ...typography.display,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   // SVG에 선 두께만큼 여백(1.75)이 있어서 Figma 위치(2, 96)에서 그만큼 당김
   doodleUnderline: {
@@ -139,10 +143,10 @@ const styles = StyleSheet.create({
   // 화면 폭이 달라도 오른쪽 기준으로 붙임
   haru: {
     position: "absolute",
-    right: -26.5,
+    right: -40,
     top: 44.4,
-    width: 297,
-    height: 297,
+    width: 324,
+    height: 324,
   },
   // 164 × 36 말풍선을 6도 회전. 회전 전 기준 위치
   speechBubble: {
@@ -152,12 +156,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
-    backgroundColor: darkColors.bgInverse,
+    backgroundColor: colors.bgInverse,
     transform: [{ rotate: "6deg" }],
   },
   speechBubbleText: {
     ...typography.labelMedium,
-    color: darkColors.textInverse,
+    color: colors.textInverse,
   },
   actions: {
     alignItems: "center",
@@ -176,11 +180,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   socialDefault: {
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
     boxShadow: "0px 4px 8px rgba(0,0,0,0.08)",
   },
   socialPrimary: {
-    backgroundColor: darkColors.accentStrong,
+    backgroundColor: colors.actionDefault,
   },
   socialIcon: {
     width: 20,
@@ -188,10 +192,10 @@ const styles = StyleSheet.create({
   },
   socialLabel: {
     ...typography.labelLarge,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   socialLabelPrimary: {
     ...typography.labelLarge,
-    color: darkColors.textOnAccent,
+    color: colors.textOnAccent,
   },
 });

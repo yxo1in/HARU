@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { darkColors, typography } from "@/constants/theme";
+import { typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 type SectionHeaderProps = {
   title: string;
@@ -8,6 +9,7 @@ type SectionHeaderProps = {
 };
 
 export function SectionHeader({ title, trailing, onPressTrailing }: SectionHeaderProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
@@ -20,7 +22,7 @@ export function SectionHeader({ title, trailing, onPressTrailing }: SectionHeade
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
@@ -28,10 +30,10 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h4,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   trailing: {
     ...typography.labelMedium,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
 });

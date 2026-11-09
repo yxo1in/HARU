@@ -1,6 +1,7 @@
 import { Image, type ImageSource } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 type QuestItemProps = {
   icon: ImageSource;
@@ -10,6 +11,7 @@ type QuestItemProps = {
 };
 
 export function QuestItem({ icon, title, current, total }: QuestItemProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.iconWrap}>
@@ -30,7 +32,7 @@ export function QuestItem({ icon, title, current, total }: QuestItemProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
@@ -38,9 +40,9 @@ const styles = StyleSheet.create({
     height: 64,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: darkColors.borderDefault,
+    borderColor: colors.borderDefault,
     borderRadius: radius.lg,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
   },
   iconWrap: {
     width: 40,
@@ -48,7 +50,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radius.md,
-    backgroundColor: darkColors.bgBrandSubtle,
+    backgroundColor: colors.bgBrandSubtle,
   },
   icon: {
     width: 24,
@@ -66,21 +68,21 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.labelLarge,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   count: {
     ...typography.labelSmall,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   track: {
     height: 8,
     overflow: "hidden",
     borderRadius: 4,
-    backgroundColor: darkColors.bgTertiary,
+    backgroundColor: colors.bgTertiary,
   },
   progress: {
     height: "100%",
     borderRadius: 4,
-    backgroundColor: darkColors.accentStrong,
+    backgroundColor: colors.accentStrong,
   },
 });

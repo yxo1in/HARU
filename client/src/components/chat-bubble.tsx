@@ -1,12 +1,14 @@
 import { Image } from "expo-image";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
 const CORNER_TAIL = 6;
 const ME_MAX_WIDTH = 270;
 
 export function HaruBubble({ text }: { text: string }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.bubble, styles.haru]}>
       <Text style={styles.body}>{text}</Text>
@@ -15,6 +17,7 @@ export function HaruBubble({ text }: { text: string }) {
 }
 
 export function QuestionBubble({ category, text }: { category: string; text: string }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.bubble, styles.haru]}>
       <Text style={styles.category}>{category}</Text>
@@ -24,6 +27,7 @@ export function QuestionBubble({ category, text }: { category: string; text: str
 }
 
 export function MyBubble({ text, time }: { text: string; time: string }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.myRow}>
       <View style={[styles.bubble, styles.me]}>
@@ -40,11 +44,13 @@ type HaruMessagesProps = {
 };
 
 export function HaruMessages({ time, children }: HaruMessagesProps) {
+  const styles = useThemedStyles(createStyles);
+  const { assets } = useTheme();
   return (
     <View style={styles.haruRow}>
       <View style={styles.avatar}>
         <Image
-          source={require("@/assets/images/mascot/haru-avatar.png")}
+          source={assets.haruAvatar}
           style={styles.avatarImage}
         />
       </View>
@@ -57,7 +63,7 @@ export function HaruMessages({ time, children }: HaruMessagesProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   haruRow: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -69,10 +75,10 @@ const styles = StyleSheet.create({
   },
   avatarImage: {
     position: "absolute",
-    left: -10.6,
+    left: -13.2,
     top: -10.2,
-    width: 58,
-    height: 58,
+    width: 63,
+    height: 63,
   },
   column: {
     flex: 1,
@@ -82,7 +88,7 @@ const styles = StyleSheet.create({
   },
   name: {
     ...typography.labelSmall,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   myRow: {
     alignItems: "flex-end",
@@ -98,33 +104,33 @@ const styles = StyleSheet.create({
   haru: {
     borderTopLeftRadius: CORNER_TAIL,
     borderTopRightRadius: radius.lg,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
     boxShadow: "0px 1px 2px rgba(0,0,0,0.05)",
   },
   me: {
     maxWidth: ME_MAX_WIDTH,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: CORNER_TAIL,
-    backgroundColor: darkColors.accentStrong,
+    backgroundColor: colors.accentStrong,
   },
   body: {
     ...typography.bodyMedium,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   bodyOnAccent: {
     ...typography.bodyMedium,
-    color: darkColors.textOnAccent,
+    color: colors.textOnAccent,
   },
   category: {
     ...typography.labelSmall,
-    color: darkColors.textBrand,
+    color: colors.textBrand,
   },
   question: {
     ...typography.h4,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   caption: {
     ...typography.caption,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
 });

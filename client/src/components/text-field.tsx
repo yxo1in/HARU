@@ -8,15 +8,21 @@ import {
   View,
   type TextInputProps,
 } from "react-native";
-import { darkColors, fontFamily, radius, spacing, typography } from "@/constants/theme";
+import { fontFamily, noWebOutline, radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
-type TextFieldProps = Pick<TextInputProps, "placeholder" | "autoCapitalize" | "autoComplete"> & {
+type TextFieldProps = Pick<
+  TextInputProps,
+  "placeholder" | "autoCapitalize" | "autoComplete" | "value" | "onChangeText" | "maxLength"
+> & {
   label: string;
   helper?: string;
   secure?: boolean;
 };
 
 export function TextField({ label, helper, secure, ...inputProps }: TextFieldProps) {
+  const styles = useThemedStyles(createStyles);
+  const { assets, colors } = useTheme();
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(true);
 
@@ -27,7 +33,7 @@ export function TextField({ label, helper, secure, ...inputProps }: TextFieldPro
         <TextInput
           {...inputProps}
           style={styles.input}
-          placeholderTextColor={darkColors.textTertiary}
+          placeholderTextColor={colors.textTertiary}
           secureTextEntry={secure && hidden}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
@@ -39,7 +45,7 @@ export function TextField({ label, helper, secure, ...inputProps }: TextFieldPro
             hitSlop={spacing.sm}
             onPress={() => setHidden((value) => !value)}
           >
-            <Image source={require("@/assets/images/icons/eye.svg")} style={styles.eye} />
+            <Image source={assets.eye} style={styles.eye} />
           </Pressable>
         ) : null}
       </View>
@@ -48,13 +54,13 @@ export function TextField({ label, helper, secure, ...inputProps }: TextFieldPro
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     gap: spacing.xs,
   },
   label: {
     ...typography.labelMedium,
-    color: darkColors.textSecondary,
+    color: colors.textSecondary,
   },
   field: {
     flexDirection: "row",
@@ -63,14 +69,14 @@ const styles = StyleSheet.create({
     height: 52,
     paddingHorizontal: spacing.lg,
     borderWidth: 1,
-    borderColor: darkColors.borderDefault,
+    borderColor: colors.borderDefault,
     borderRadius: radius.md,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
   },
   fieldFocused: {
     borderWidth: 1.5,
-    borderColor: darkColors.borderFocus,
-    boxShadow: `0px 0px 0px 2px ${darkColors.focusRing}`,
+    borderColor: colors.borderFocus,
+    boxShadow: `0px 0px 0px 2px ${colors.focusRing}`,
   },
   // TextInput에 lineHeight를 주면 iOS에서 글자 위치가 어긋나서 크기만 지정함
   input: {
@@ -79,8 +85,8 @@ const styles = StyleSheet.create({
     height: "100%",
     fontFamily: fontFamily.base,
     fontSize: 16,
-    color: darkColors.textPrimary,
-    outlineWidth: 0,
+    color: colors.textPrimary,
+    ...noWebOutline,
   },
   eye: {
     width: 24,
@@ -88,6 +94,6 @@ const styles = StyleSheet.create({
   },
   helper: {
     ...typography.caption,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
 });

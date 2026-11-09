@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
-import { darkColors, spacing, typography } from "@/constants/theme";
+import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
 type StreakDayProps = {
   day: string;
@@ -8,11 +9,13 @@ type StreakDayProps = {
 };
 
 export function StreakDay({ day, status }: StreakDayProps) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
   return (
     <View style={styles.container}>
       {status === "done" ? (
         <LinearGradient
-          colors={[darkColors.mascotTop, darkColors.mascotMid, darkColors.mascotBottom]}
+          colors={[colors.mascotTop, colors.mascotMid, colors.mascotBottom]}
           locations={[0, 0.55, 1]}
           style={styles.dot}
         >
@@ -27,7 +30,7 @@ export function StreakDay({ day, status }: StreakDayProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     alignItems: "center",
     gap: spacing.xs,
@@ -38,13 +41,13 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   missed: {
-    backgroundColor: darkColors.bgTertiary,
+    backgroundColor: colors.bgTertiary,
   },
   today: {
     borderWidth: 2,
     borderStyle: "dashed",
-    borderColor: darkColors.borderFocus,
-    backgroundColor: darkColors.bgPrimary,
+    borderColor: colors.borderFocus,
+    backgroundColor: colors.bgPrimary,
   },
   eye: {
     position: "absolute",
@@ -52,7 +55,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 10,
     borderRadius: 2,
-    backgroundColor: darkColors.mascotFace,
+    backgroundColor: colors.mascotFace,
   },
   eyeLeft: {
     left: 12,
@@ -62,10 +65,10 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.caption,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   labelToday: {
     ...typography.labelSmall,
-    color: darkColors.textBrand,
+    color: colors.textBrand,
   },
 });

@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 type RecordItemProps = {
   meta: string;
@@ -9,6 +10,7 @@ type RecordItemProps = {
 };
 
 export function RecordItem({ meta, question, score, onPress }: RecordItemProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable style={styles.container} disabled={!onPress} onPress={onPress}>
       <View style={styles.text}>
@@ -25,7 +27,7 @@ export function RecordItem({ meta, question, score, onPress }: RecordItemProps) 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
@@ -34,9 +36,9 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     alignSelf: "stretch",
     borderWidth: 1,
-    borderColor: darkColors.borderDefault,
+    borderColor: colors.borderDefault,
     borderRadius: radius.lg,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
   },
   text: {
     flex: 1,
@@ -45,11 +47,11 @@ const styles = StyleSheet.create({
   },
   meta: {
     ...typography.caption,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   question: {
     ...typography.labelLarge,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   score: {
     flexDirection: "row",
@@ -58,10 +60,10 @@ const styles = StyleSheet.create({
   },
   scoreValue: {
     ...typography.h3,
-    color: darkColors.textBrand,
+    color: colors.textBrand,
   },
   scoreUnit: {
     ...typography.labelSmall,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
 });

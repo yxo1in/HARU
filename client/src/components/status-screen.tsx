@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NavBar } from "@/components/nav-bar";
-import { darkColors, spacing, typography } from "@/constants/theme";
+import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 type StatusScreenProps = {
   mascot: ImageSource;
@@ -20,6 +21,7 @@ export function StatusScreen({
   subtitle,
   children,
 }: StatusScreenProps) {
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
 
   return (
@@ -39,10 +41,10 @@ export function StatusScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
   },
   body: {
     flex: 1,
@@ -52,24 +54,24 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   mascotBox: {
-    width: 209,
-    height: 209,
+    width: 228,
+    height: 228,
   },
   mascot: {
-    width: 209,
-    height: 209,
+    width: 228,
+    height: 228,
   },
   title: {
     ...typography.h2,
-    marginTop: 27,
+    marginTop: spacing.sm,
     textAlign: "center",
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   subtitle: {
     ...typography.bodyMedium,
     marginTop: spacing.sm,
     textAlign: "center",
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   actions: {
     alignSelf: "stretch",
@@ -77,6 +79,6 @@ const styles = StyleSheet.create({
     marginTop: "auto",
   },
   homeArea: {
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
   },
 });

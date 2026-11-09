@@ -1,7 +1,8 @@
 import { Image } from "expo-image";
 import { useState, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { darkColors, radius, typography } from "@/constants/theme";
+import { radius, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
 // Figma 차트 카드 폭. 내부 좌표가 이 폭 기준이라 화면 폭에 맞춰 통째로 확대·축소함
 const DESIGN_WIDTH = 345;
@@ -12,6 +13,7 @@ type ChartFrameProps = {
 };
 
 export function ChartFrame({ height, children }: ChartFrameProps) {
+  const styles = useThemedStyles(createStyles);
   const [scale, setScale] = useState(1);
 
   return (
@@ -33,14 +35,16 @@ type ChartPointProps = {
 };
 
 export function ChartPoint({ x, y, latest }: ChartPointProps) {
+  const styles = useThemedStyles(createStyles);
+  const { assets } = useTheme();
   const size = latest ? 12 : 8;
 
   return (
     <Image
       source={
         latest
-          ? require("@/assets/images/chart/point-latest.svg")
-          : require("@/assets/images/chart/point.svg")
+          ? assets.chartPointLatest
+          : assets.chartPoint
       }
       style={[styles.absolute, { left: x, top: y, width: size, height: size }]}
     />
@@ -55,6 +59,7 @@ type ChartLabelProps = {
 };
 
 export function ChartLabel({ x, y, text, highlight }: ChartLabelProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Text
       style={[
@@ -68,12 +73,12 @@ export function ChartLabel({ x, y, text, highlight }: ChartLabelProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
     alignSelf: "stretch",
     overflow: "hidden",
     borderRadius: radius.lg,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
   },
   canvas: {
     width: DESIGN_WIDTH,
@@ -84,10 +89,10 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.caption,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   labelHighlight: {
     ...typography.labelMedium,
-    color: darkColors.textBrand,
+    color: colors.textBrand,
   },
 });

@@ -8,7 +8,8 @@ import { Chip } from "@/components/chip";
 import { RecordItem } from "@/components/record-item";
 import { ScreenHeader } from "@/components/screen-header";
 import { SectionHeader } from "@/components/section-header";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
 // API 연동 전까지 쓰는 Figma 예시 데이터
 const CHIPS = ["전체", "자기소개", "지원동기", "인성", "기술"];
@@ -37,13 +38,15 @@ const POINTS = [
 ];
 
 function EmptyRecord() {
+  const styles = useThemedStyles(createStyles);
+  const { assets } = useTheme();
   return (
     <View style={styles.container}>
       <ScreenHeader title="기록" />
       <View style={styles.empty}>
         <View style={styles.emptyMascot}>
           <Image
-            source={require("@/assets/images/mascot/haru-empty.png")}
+            source={assets.haruEmpty}
             style={styles.emptyHaru}
           />
         </View>
@@ -61,6 +64,8 @@ function EmptyRecord() {
 }
 
 export default function Record() {
+  const styles = useThemedStyles(createStyles);
+  const { assets } = useTheme();
   // API 연동 전까지 빈 상태를 주소의 empty 값으로 구분함
   const { empty } = useLocalSearchParams<{ empty?: string }>();
   const [selectedChip, setSelectedChip] = useState("전체");
@@ -112,14 +117,14 @@ export default function Record() {
             {GRID_LINES.map(({ y, label }) => (
               <View key={label}>
                 <Image
-                  source={require("@/assets/images/chart/record-grid.svg")}
+                  source={assets.chartRecordGrid}
                   style={[styles.grid, { top: y - 0.5 }]}
                 />
                 <ChartLabel x={20} y={y - 9} text={label} />
               </View>
             ))}
             <Image
-              source={require("@/assets/images/chart/record-line.svg")}
+              source={assets.chartRecordLine}
               style={styles.line}
             />
             {POINTS.map(([x, y]) => (
@@ -147,10 +152,10 @@ export default function Record() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
   },
   scroll: {
     flex: 1,
@@ -168,20 +173,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingVertical: 20,
     borderRadius: radius.lg,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
   },
   average: {
     ...typography.display,
-    color: darkColors.textAccent,
+    color: colors.textAccent,
   },
   statLabel: {
     ...typography.bodySmall,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   divider: {
     width: 1,
     height: 56,
-    backgroundColor: darkColors.borderDefault,
+    backgroundColor: colors.borderDefault,
   },
   side: {
     width: 148,
@@ -194,7 +199,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...typography.labelLarge,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   section: {
     gap: spacing.md,
@@ -215,21 +220,21 @@ const styles = StyleSheet.create({
   },
   emptyHaru: {
     position: "absolute",
-    left: 6.67,
+    left: 0,
     top: 0,
-    width: 147,
-    height: 147,
+    width: 160,
+    height: 160,
   },
   emptyTitle: {
     ...typography.h2,
     textAlign: "center",
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   emptyText: {
     ...typography.bodyMedium,
     marginTop: spacing.sm,
     textAlign: "center",
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   emptyButton: {
     marginTop: spacing.xl,

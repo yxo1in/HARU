@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
-import { darkColors, typography } from "@/constants/theme";
+import { typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 type ScoreSummaryProps = {
   score: number;
@@ -7,6 +8,7 @@ type ScoreSummaryProps = {
 };
 
 export function ScoreSummary({ score, delta }: ScoreSummaryProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.container}>
       <Text style={styles.label}>점수</Text>
@@ -21,14 +23,14 @@ export function ScoreSummary({ score, delta }: ScoreSummaryProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     alignItems: "flex-start",
     gap: 2,
   },
   label: {
     ...typography.labelSmall,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   line: {
     flexDirection: "row",
@@ -37,20 +39,20 @@ const styles = StyleSheet.create({
   },
   score: {
     ...typography.score,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   unit: {
     ...typography.h4,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   delta: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: darkColors.bgSuccessSubtle,
+    backgroundColor: colors.bgSuccessSubtle,
   },
   deltaText: {
     ...typography.labelSmall,
-    color: darkColors.textSuccess,
+    color: colors.textSuccess,
   },
 });

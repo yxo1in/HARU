@@ -1,3 +1,11 @@
+import { Platform } from "react-native";
+
+// 웹 브라우저가 입력칸 안쪽에 그리는 기본 포커스 테두리를 없앰. outlineStyle의 "none"은 RN 타입에 없음
+export const noWebOutline = Platform.select<object>({
+  web: { outlineStyle: "none" },
+  default: {},
+});
+
 export const palette = {
   white: "#ffffff",
   neutral900: "#141414",
@@ -50,7 +58,42 @@ export const darkColors = {
   textWarning: "#ffe280",
   focusRing: "rgba(255,224,127,0.18)",
   scrim: "rgba(15,16,34,0.5)",
+  actionDefault: "#ffd15c",
 } as const;
+
+export type ThemeColors = { [K in keyof typeof darkColors]: string };
+
+export const lightColors: ThemeColors = {
+  bgPrimary: "#ffffff",
+  bgSecondary: "#f4f9ff",
+  bgHeader: "#ffffff",
+  textPrimary: "#141414",
+  textTertiary: "#6e6963",
+  textBrand: "#946200",
+  borderDefault: "#dce4ee",
+  borderStrong: "#c5d0dd",
+  borderFocus: "#b88200",
+  bgTertiary: "#eaf0f7",
+  bgBrandSubtle: "#fffbea",
+  textSecondary: "#55514c",
+  textAccent: "#946200",
+  textDanger: "#d43a2c",
+  textOnAccent: "#141414",
+  accentStrong: "#f0ac00",
+  mascotFace: "#141414",
+  mascotTop: "#fff4b8",
+  mascotMid: "#ffdb4d",
+  mascotBottom: "#ffbe1a",
+  bgSky: "#e3f0ff",
+  bgInverse: "#141414",
+  textInverse: "#ffffff",
+  textSuccess: "#118059",
+  bgSuccessSubtle: "#eafff6",
+  textWarning: "#8a5a00",
+  focusRing: "#ffe68a99",
+  scrim: "rgba(15,16,34,0.5)",
+  actionDefault: "#ffc000",
+};
 
 export const spacing = {
   xs: 4,

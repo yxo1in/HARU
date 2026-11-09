@@ -8,7 +8,8 @@ import { QuestItem } from "@/components/quest-item";
 import { ScreenHeader } from "@/components/screen-header";
 import { SectionHeader } from "@/components/section-header";
 import { StreakDay } from "@/components/streak-day";
-import { darkColors, radius, spacing, typography } from "@/constants/theme";
+import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
 // API 연동 전까지 쓰는 Figma 예시 데이터
 const DAYS = [
@@ -22,10 +23,10 @@ const DAYS = [
 ] as const;
 
 const QUESTS = [
-  { icon: require("@/assets/images/icons/quest-write.svg"), title: "답변 1개 쓰기", current: 0, total: 1 },
-  { icon: require("@/assets/images/icons/quest-target.svg"), title: "80점 넘기기", current: 0, total: 1 },
-  { icon: require("@/assets/images/icons/quest-calendar.svg"), title: "이번 주 답변 5개", current: 3, total: 5 },
-];
+  { iconKey: "questWrite", title: "답변 1개 쓰기", current: 0, total: 1 },
+  { iconKey: "questTarget", title: "80점 넘기기", current: 0, total: 1 },
+  { iconKey: "questCalendar", title: "이번 주 답변 5개", current: 3, total: 5 },
+] as const;
 
 const POINTS = [
   [20, 62],
@@ -36,6 +37,8 @@ const POINTS = [
 ];
 
 export default function Home() {
+  const styles = useThemedStyles(createStyles);
+  const { assets } = useTheme();
   return (
     <View style={styles.container}>
       <ScreenHeader>
@@ -51,7 +54,7 @@ export default function Home() {
             {"기진님,\n오늘도 한 번\n연습해볼까요?"}
           </Text>
           <Image
-            source={require("@/assets/images/mascot/haru-home.png")}
+            source={assets.haruHome}
             style={styles.haru}
           />
         </View>
@@ -75,11 +78,11 @@ export default function Home() {
           />
           <ChartFrame height={125}>
             <Image
-              source={require("@/assets/images/chart/home-baseline.svg")}
+              source={assets.chartHomeBaseline}
               style={styles.baseline}
             />
             <Image
-              source={require("@/assets/images/chart/home-line.svg")}
+              source={assets.chartHomeLine}
               style={styles.line}
             />
             {POINTS.map(([x, y]) => (
@@ -97,8 +100,8 @@ export default function Home() {
           <View style={styles.goalsHeader}>
             <SectionHeader title="오늘의 목표" trailing="0/3 완료" />
           </View>
-          {QUESTS.map((quest) => (
-            <QuestItem key={quest.title} {...quest} />
+          {QUESTS.map(({ iconKey, ...quest }) => (
+            <QuestItem key={quest.title} icon={assets[iconKey]} {...quest} />
           ))}
         </View>
       </ScrollView>
@@ -106,10 +109,10 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
   },
   pills: {
     flexDirection: "row",
@@ -130,15 +133,15 @@ const styles = StyleSheet.create({
   },
   greetingText: {
     ...typography.display,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
-  // 화면 폭이 달라도 오른쪽 기준으로 붙임 (PNG는 정수 크기로 내보내 원본보다 0.6 큼)
+  // 화면 폭이 달라도 오른쪽 기준으로 붙임 (Figma Haru 박스)
   haru: {
     position: "absolute",
-    right: -25.4,
+    right: -32.2,
     top: 93.2,
-    width: 159,
-    height: 159,
+    width: 173,
+    height: 173,
   },
   section: {
     gap: spacing.md,
@@ -149,7 +152,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: spacing.lg,
     borderRadius: radius.lg,
-    backgroundColor: darkColors.bgPrimary,
+    backgroundColor: colors.bgPrimary,
   },
   baseline: {
     position: "absolute",

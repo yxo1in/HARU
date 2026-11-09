@@ -4,9 +4,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
 import { NavBar } from "@/components/nav-bar";
 import { TextField } from "@/components/text-field";
-import { darkColors, spacing, typography } from "@/constants/theme";
+import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 export default function Login() {
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
 
   return (
@@ -34,10 +36,10 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
   },
   scroll: {
     flex: 1,
@@ -49,7 +51,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   form: {
     gap: spacing.xl,
@@ -69,10 +71,10 @@ const styles = StyleSheet.create({
   },
   signUpHint: {
     ...typography.bodySmall,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   signUpLink: {
     ...typography.labelMedium,
-    color: darkColors.textBrand,
+    color: colors.textBrand,
   },
 });

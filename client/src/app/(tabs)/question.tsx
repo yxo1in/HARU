@@ -7,7 +7,8 @@ import { JobPill } from "@/components/header-pill";
 import { RecordItem } from "@/components/record-item";
 import { ScreenHeader } from "@/components/screen-header";
 import { SectionHeader } from "@/components/section-header";
-import { darkColors, spacing, typography } from "@/constants/theme";
+import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { useThemedStyles } from "@/components/theme-provider";
 
 // API 연동 전까지 쓰는 Figma 예시 데이터
 const CATEGORIES = ["랜덤", "자기소개", "지원동기", "인성", "기술"];
@@ -29,6 +30,7 @@ function openRecord() {
 }
 
 function StartQuestion() {
+  const styles = useThemedStyles(createStyles);
   const [category, setCategory] = useState("랜덤");
 
   return (
@@ -54,6 +56,7 @@ function StartQuestion() {
 }
 
 function TodayDone() {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.start}>
       <View style={styles.intro}>
@@ -71,6 +74,7 @@ function TodayDone() {
 }
 
 export default function Question() {
+  const styles = useThemedStyles(createStyles);
   // API 연동 전까지 오늘 답변 여부를 주소의 done 값으로 구분함
   const { done } = useLocalSearchParams<{ done?: string }>();
 
@@ -98,10 +102,10 @@ export default function Question() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bgSecondary,
+    backgroundColor: colors.bgSecondary,
   },
   scroll: {
     flex: 1,
@@ -120,11 +124,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    color: darkColors.textPrimary,
+    color: colors.textPrimary,
   },
   subtitle: {
     ...typography.bodyMedium,
-    color: darkColors.textTertiary,
+    color: colors.textTertiary,
   },
   chips: {
     gap: spacing.sm,
