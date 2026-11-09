@@ -23,6 +23,7 @@ const SAMPLE_ANSWER = "저는 사람들이 매일 쓰는 서비스를 만들고 
 export default function Answer() {
   const insets = useSafeAreaInsets();
   const [answer, setAnswer] = useState(SAMPLE_ANSWER);
+  const [tipSelected, setTipSelected] = useState(false);
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
@@ -44,7 +45,11 @@ export default function Answer() {
 
       <View style={[styles.composer, { paddingBottom: insets.bottom + spacing.md }]}>
         <View style={styles.quickActions}>
-          <Chip label="답변 팁 보기" />
+          <Chip
+            label="답변 팁 보기"
+            selected={tipSelected}
+            onPress={() => setTipSelected((value) => !value)}
+          />
           <Chip label="다른 질문 받기" onPress={() => router.replace("/generating")} />
         </View>
         <View style={styles.inputRow}>

@@ -1,5 +1,6 @@
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/button";
 import { ChartFrame, ChartLabel, ChartPoint } from "@/components/chart-frame";
@@ -11,7 +12,6 @@ import { darkColors, radius, spacing, typography } from "@/constants/theme";
 
 // API 연동 전까지 쓰는 Figma 예시 데이터
 const CHIPS = ["전체", "자기소개", "지원동기", "인성", "기술"];
-const SELECTED_CHIP = "전체";
 
 const RECORDS = [
   { meta: "지원동기, 오늘", question: "우리 회사에 지원한 이유는?", score: 88 },
@@ -63,6 +63,7 @@ function EmptyRecord() {
 export default function Record() {
   // API 연동 전까지 빈 상태를 주소의 empty 값으로 구분함
   const { empty } = useLocalSearchParams<{ empty?: string }>();
+  const [selectedChip, setSelectedChip] = useState("전체");
 
   if (empty) {
     return <EmptyRecord />;
@@ -99,7 +100,12 @@ export default function Record() {
             contentContainerStyle={styles.chips}
           >
             {CHIPS.map((chip) => (
-              <Chip key={chip} label={chip} selected={chip === SELECTED_CHIP} />
+              <Chip
+                key={chip}
+                label={chip}
+                selected={chip === selectedChip}
+                onPress={() => setSelectedChip(chip)}
+              />
             ))}
           </ScrollView>
           <ChartFrame height={211}>

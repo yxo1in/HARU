@@ -41,7 +41,7 @@ export default function TabsLayout() {
   return (
     <Tabs style={styles.root}>
       <TabSlot style={styles.slot} />
-      <TabList style={[styles.tabList, { paddingBottom: insets.bottom }]}>
+      <TabList style={[styles.tabList, { paddingBottom: insets.bottom + spacing.sm }]}>
         {TABS.map(({ name, href, label, icon, activeIcon }) => (
           <TabTrigger key={name} name={name} href={href} asChild>
             <TabButton label={label} icon={icon} activeIcon={activeIcon} />
@@ -64,6 +64,7 @@ const styles = StyleSheet.create({
     flexBasis: 0,
   },
   tabList: {
+    paddingTop: spacing.sm,
     paddingHorizontal: spacing.xl,
     borderTopWidth: 1,
     borderTopColor: darkColors.borderDefault,
