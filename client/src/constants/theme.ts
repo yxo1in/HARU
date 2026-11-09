@@ -42,6 +42,14 @@ export const darkColors = {
   mascotTop: "#fffbea",
   mascotMid: "#fff0bf",
   mascotBottom: "#f3d98a",
+  bgSky: "#24274a",
+  bgInverse: "#fff6d9",
+  textInverse: "#0f1022",
+  textSuccess: "#6debb8",
+  bgSuccessSubtle: "#12302a",
+  textWarning: "#ffe280",
+  focusRing: "rgba(255,224,127,0.18)",
+  scrim: "rgba(15,16,34,0.5)",
 } as const;
 
 export const spacing = {
@@ -98,6 +106,20 @@ export const typography = {
     fontSize: 16,
     fontWeight: "400",
     lineHeight: 24,
+    letterSpacing: 0,
+  },
+  score: {
+    fontFamily: fontFamily.base,
+    fontSize: 56,
+    fontWeight: "400",
+    lineHeight: 64,
+    letterSpacing: -1.68,
+  },
+  bodyLarge: {
+    fontFamily: fontFamily.base,
+    fontSize: 18,
+    fontWeight: "400",
+    lineHeight: 28,
     letterSpacing: 0,
   },
   bodySmall: {

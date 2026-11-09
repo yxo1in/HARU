@@ -1,15 +1,16 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { darkColors, radius, spacing, typography } from "@/constants/theme";
 
 type RecordItemProps = {
   meta: string;
   question: string;
   score: number;
+  onPress?: () => void;
 };
 
-export function RecordItem({ meta, question, score }: RecordItemProps) {
+export function RecordItem({ meta, question, score, onPress }: RecordItemProps) {
   return (
-    <View style={styles.container}>
+    <Pressable style={styles.container} disabled={!onPress} onPress={onPress}>
       <View style={styles.text}>
         <Text style={styles.meta}>{meta}</Text>
         <Text style={styles.question} numberOfLines={1}>
@@ -20,7 +21,7 @@ export function RecordItem({ meta, question, score }: RecordItemProps) {
         <Text style={styles.scoreValue}>{score}</Text>
         <Text style={styles.scoreUnit}>점</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

@@ -1,16 +1,21 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { darkColors, typography } from "@/constants/theme";
 
 type SectionHeaderProps = {
   title: string;
   trailing?: string;
+  onPressTrailing?: () => void;
 };
 
-export function SectionHeader({ title, trailing }: SectionHeaderProps) {
+export function SectionHeader({ title, trailing, onPressTrailing }: SectionHeaderProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
-      {trailing ? <Text style={styles.trailing}>{trailing}</Text> : null}
+      {trailing ? (
+        <Pressable disabled={!onPressTrailing} onPress={onPressTrailing}>
+          <Text style={styles.trailing}>{trailing}</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
