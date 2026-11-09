@@ -1,6 +1,9 @@
 import { Image } from "expo-image";
+import { router, useLocalSearchParams } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Button } from "@/components/button";
 import { ChartFrame, ChartLabel, ChartPoint } from "@/components/chart-frame";
+import { Chip } from "@/components/chip";
 import { RecordItem } from "@/components/record-item";
 import { ScreenHeader } from "@/components/screen-header";
 import { SectionHeader } from "@/components/section-header";
@@ -33,7 +36,38 @@ const POINTS = [
   [271.18, 75],
 ];
 
+function EmptyRecord() {
+  return (
+    <View style={styles.container}>
+      <ScreenHeader title="기록" />
+      <View style={styles.empty}>
+        <View style={styles.emptyMascot}>
+          <Image
+            source={require("@/assets/images/mascot/haru-empty.png")}
+            style={styles.emptyHaru}
+          />
+        </View>
+        <Text style={styles.emptyTitle}>아직 기록이 없어요</Text>
+        <Text style={styles.emptyText}>{"첫 답변을 남기면\n점수 흐름이 여기 쌓여요"}</Text>
+        <Button
+          label="첫 질문 받기"
+          size="sm"
+          style={styles.emptyButton}
+          onPress={() => router.navigate("/question")}
+        />
+      </View>
+    </View>
+  );
+}
+
 export default function Record() {
+  // API 연동 전까지 빈 상태를 주소의 empty 값으로 구분함
+  const { empty } = useLocalSearchParams<{ empty?: string }>();
+
+  if (empty) {
+    return <EmptyRecord />;
+  }
+
   return (
     <View style={styles.container}>
       <ScreenHeader title="기록" />
@@ -64,16 +98,9 @@ export default function Record() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chips}
           >
-            {CHIPS.map((chip) => {
-              const selected = chip === SELECTED_CHIP;
-              return (
-                <View key={chip} style={[styles.chip, selected && styles.chipSelected]}>
-                  <Text style={selected ? styles.chipLabelSelected : styles.chipLabel}>
-                    {chip}
-                  </Text>
-                </View>
-              );
-            })}
+            {CHIPS.map((chip) => (
+              <Chip key={chip} label={chip} selected={chip === SELECTED_CHIP} />
+            ))}
           </ScrollView>
           <ChartFrame height={211}>
             {GRID_LINES.map(({ y, label }) => (
@@ -102,7 +129,11 @@ export default function Record() {
         <View style={styles.section}>
           <SectionHeader title="전체 기록" />
           {RECORDS.map((item) => (
-            <RecordItem key={item.meta} {...item} />
+            <RecordItem
+              key={item.meta}
+              {...item}
+              onPress={() => router.push("/record-detail")}
+            />
           ))}
         </View>
       </ScrollView>
@@ -165,27 +196,37 @@ const styles = StyleSheet.create({
   chips: {
     gap: spacing.sm,
   },
-  chip: {
-    height: 44,
+  empty: {
+    flex: 1,
+    alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacing.md,
-    borderWidth: 1,
-    borderColor: darkColors.borderDefault,
-    borderRadius: radius.full,
-    backgroundColor: darkColors.bgPrimary,
+    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
   },
-  chipSelected: {
-    borderWidth: 1.5,
-    borderColor: darkColors.borderFocus,
-    backgroundColor: darkColors.bgBrandSubtle,
+  emptyMascot: {
+    width: 160,
+    height: 160,
   },
-  chipLabel: {
-    ...typography.labelMedium,
-    color: darkColors.textSecondary,
+  emptyHaru: {
+    position: "absolute",
+    left: 6.67,
+    top: 0,
+    width: 147,
+    height: 147,
   },
-  chipLabelSelected: {
-    ...typography.labelMedium,
-    color: darkColors.textBrand,
+  emptyTitle: {
+    ...typography.h2,
+    textAlign: "center",
+    color: darkColors.textPrimary,
+  },
+  emptyText: {
+    ...typography.bodyMedium,
+    marginTop: spacing.sm,
+    textAlign: "center",
+    color: darkColors.textTertiary,
+  },
+  emptyButton: {
+    marginTop: spacing.xl,
   },
   grid: {
     position: "absolute",
