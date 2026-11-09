@@ -1,5 +1,7 @@
 import { Image } from "expo-image";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Button } from "@/components/button";
 import { ChartFrame, ChartLabel, ChartPoint } from "@/components/chart-frame";
 import { JobPill, StreakPill } from "@/components/header-pill";
 import { QuestItem } from "@/components/quest-item";
@@ -49,14 +51,12 @@ export default function Home() {
             {"기진님,\n오늘도 한 번\n연습해볼까요?"}
           </Text>
           <Image
-            source={require("@/assets/images/mascot/haru-home.svg")}
+            source={require("@/assets/images/mascot/haru-home.png")}
             style={styles.haru}
           />
         </View>
 
-        <Pressable style={styles.startButton} accessibilityRole="button">
-          <Text style={styles.startLabel}>연습 시작하기</Text>
-        </Pressable>
+        <Button label="연습 시작하기" onPress={() => router.navigate("/question")} />
 
         <View style={styles.section}>
           <SectionHeader title="지난 7일" />
@@ -68,7 +68,11 @@ export default function Home() {
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="점수 흐름" trailing="기록 보기" />
+          <SectionHeader
+            title="점수 흐름"
+            trailing="기록 보기"
+            onPressTrailing={() => router.navigate("/record")}
+          />
           <ChartFrame height={125}>
             <Image
               source={require("@/assets/images/chart/home-baseline.svg")}
@@ -128,25 +132,13 @@ const styles = StyleSheet.create({
     ...typography.display,
     color: darkColors.textPrimary,
   },
-  // 화면 폭이 달라도 오른쪽 기준으로 붙임 (Figma 오른쪽 여백 -24.8)
+  // 화면 폭이 달라도 오른쪽 기준으로 붙임 (PNG는 정수 크기로 내보내 원본보다 0.6 큼)
   haru: {
     position: "absolute",
-    right: -24.8,
+    right: -25.4,
     top: 93.2,
-    width: 158.4,
-    height: 158.4,
-  },
-  startButton: {
-    height: 56,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing["2xl"],
-    borderRadius: radius.md,
-    backgroundColor: darkColors.accentStrong,
-  },
-  startLabel: {
-    ...typography.labelLarge,
-    color: darkColors.textOnAccent,
+    width: 159,
+    height: 159,
   },
   section: {
     gap: spacing.md,
