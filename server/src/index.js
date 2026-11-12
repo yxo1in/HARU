@@ -28,6 +28,9 @@ app.use("/api/job-roles", require("./routes/jobRoles"));
 const auth = require("./middleware/auth");
 app.use("/api/home", auth, require("./routes/home"));
 
+// profile
+app.use("/api/profile", auth, require("./routes/profile"));
+
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });
