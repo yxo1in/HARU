@@ -60,4 +60,32 @@ router.patch("/updatePassword", async (req, res) => {
   res.json({ message: "비밀번호를 변경했어요." });
 });
 
+router.patch("/updateNickname", async (req, res) => {
+  const { newNickname } = req.body;
+  if (typeof newNickname !== "string") {
+    return res.status(400).json({ error: "닉네임을 입력해주세요." });
+  }
+  if (
+    newNickname.replace(/\s/g, "").length < 2 ||
+    newNickname.replace(/\s/g, "").length > 10
+  ) {
+    return res
+      .status(400)
+      .json({ error: "닉네임은 공백 제외 2~10자로 입력해 주세요." });
+  }
+  try {
+    await pool.query(`UPDATE users SET nickname=? WHERE id=?`, [
+      newNickname.trim(),
+      req.userId,
+    ]);
+
+    res.json({ message: "닉네임을 변경했어요." });
+  } catch (err) {
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({ error: "이미 사용 중인 닉네임입니다." });
+    }
+    throw err;
+  }
+});
+
 module.exports = router;
