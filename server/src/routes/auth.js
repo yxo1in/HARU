@@ -5,7 +5,6 @@ const router = express.Router();
 
 // 로그인 관련 api 추가
 
-// README 입력 규칙과 같게 유지
 const LOGIN_ID_PATTERN = /^[a-z0-9]{4,20}$/;
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,64}$/;
 const NICKNAME_MIN_LENGTH = 2;
@@ -62,5 +61,7 @@ router.post("/register", async (req, res) => {
     throw err;
   }
 });
+
+router.
 
 module.exports = router;

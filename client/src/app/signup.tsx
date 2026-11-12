@@ -50,8 +50,8 @@ export default function SignUp() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             login_id: loginId,
-            password,
-            nickname,
+            password : password,
+            nickname : nickname,
             job_role_id: jobRoleId,
           }),
         },
