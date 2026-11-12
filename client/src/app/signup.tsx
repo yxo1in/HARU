@@ -61,7 +61,7 @@ export default function SignUp() {
         setError(data.error);
         return;
       }
-      router.replace("/home");
+      router.replace("/login");
     } catch {
       setError("서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
