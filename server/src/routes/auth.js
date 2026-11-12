@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const pool = require("../db");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
 
 // 로그인 관련 api 추가
 
@@ -22,7 +23,10 @@ function findRegisterError({ login_id, password, nickname, job_role_id }) {
   }
   const nicknameLength =
     typeof nickname === "string" ? nickname.replace(/\s/g, "").length : 0;
-  if (nicknameLength < NICKNAME_MIN_LENGTH || nicknameLength > NICKNAME_MAX_LENGTH) {
+  if (
+    nicknameLength < NICKNAME_MIN_LENGTH ||
+    nicknameLength > NICKNAME_MAX_LENGTH
+  ) {
     return "닉네임은 공백 제외 2~10자로 입력해 주세요.";
   }
   if (job_role_id != null && !Number.isInteger(job_role_id)) {
@@ -30,7 +34,18 @@ function findRegisterError({ login_id, password, nickname, job_role_id }) {
   }
   return null;
 }
-
+const loginError = ({ login_id, password }) => {
+  if (!login_id || !password) {
+    return "아이디, 비밀번호를 입력해 주세요.";
+  }
+  if (typeof login_id !== "string") {
+    return "아이디를 입력해주세요";
+  }
+  if (typeof password !== "string") {
+    return "비밀번호를 입력해주세요";
+  }
+  return null;
+};
 router.post("/register", async (req, res) => {
   const { login_id, password, nickname, job_role_id } = req.body;
 
@@ -62,6 +77,33 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.
+router.post("/login", async (req, res) => {
+  const { login_id, password } = req.body;
+  if (loginError({ login_id, password })) {
+    return res.status(400).json({ error: loginError({ login_id, password }) });
+  }
+
+  const [result] = await pool.query(
+    `SELECT id, login_id, nickname, password_hash FROM users WHERE login_id = ?`,
+    [login_id],
+  );
+  const user = result[0];
+  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+    return res
+      .status(401)
+      .json({ error: "아이디 또는 비밀번호가 맞지 않아요." });
+  }
+  const accessToken = jwt.sign(
+    { userId: user.id, login_id: user.login_id },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "14d",
+    },
+  );
+  res.json({
+    accessToken,
+    user: { id: user.id, login_id: user.login_id, nickname: user.nickname },
+  });
+});
 
 module.exports = router;
