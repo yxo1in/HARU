@@ -85,6 +85,91 @@
           "200": { "description": "sort_order 오름차순 직무 목록" }
         }
       }
+    },
+    "/api/profile": {
+      "get": {
+        "tags": ["profile"],
+        "summary": "내 프로필 조회",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "nickname": { "type": "string", "example": "tester" },
+                    "jobRoleId": { "type": "integer", "nullable": true, "example": 1 },
+                    "jobRoleName": { "type": "string", "nullable": true, "example": "프론트엔드 개발자" },
+                    "email": { "type": "string", "nullable": true, "example": null }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "토큰이 없거나 유효하지 않음" }
+        }
+      }
+    },
+    "/api/profile/updatePassword": {
+      "patch": {
+        "tags": ["profile"],
+        "summary": "비밀번호 변경",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["currentPassword", "newPassword"],
+                "properties": {
+                  "currentPassword": { "type": "string", "example": "haru1234" },
+                  "newPassword": { "type": "string", "example": "haru5678" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "변경 성공" },
+          "400": { "description": "입력값 오류 또는 현재 비밀번호가 맞지 않음" },
+          "401": { "description": "토큰이 없거나 유효하지 않음" }
+        }
+      }
+    },
+    "/api/profile/updateNickname": {
+      "patch": {
+        "tags": ["profile"],
+        "summary": "닉네임 변경",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["newNickname"],
+                "properties": {
+                  "newNickname": { "type": "string", "example": "하루" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "변경 성공" },
+          "400": { "description": "닉네임이 없거나 공백 제외 2~10자가 아님" },
+          "401": { "description": "토큰이 없거나 유효하지 않음" },
+          "409": { "description": "이미 사용 중인 닉네임" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
     }
   }
 }
