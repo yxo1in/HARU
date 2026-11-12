@@ -61,7 +61,15 @@ export default function Profile() {
   };
   const [profile, setProfile] = useState<profileData | null>(null);
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
+  const [notice, setNotice] = useState("");
   const closeSheet = () => setOpenSheet(null);
+
+  // 안내 문구는 3초 뒤에 사라짐
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(""), 3000);
+    return () => clearTimeout(timer);
+  }, [notice]);
 
   useEffect(() => {
     (async () => {
@@ -77,6 +85,38 @@ export default function Profile() {
       setProfile(await res.json());
     })();
   }, []);
+
+  // 실패하면 에러 문구를 돌려줘서 시트에 보여줌
+  const handleUpdatePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/profile/updatePassword`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      if (res.status === 401) {
+        await removeToken();
+        router.replace("/");
+        return null;
+      }
+      if (!res.ok) {
+        const data = await res.json();
+        return data.error ?? "비밀번호를 바꾸지 못했어요.";
+      }
+      closeSheet();
+      setNotice("비밀번호를 변경했어요.");
+      return null;
+    } catch {
+      return "서버에 연결할 수 없어요.";
+    }
+  };
 
   const logout = async () => {
     await removeToken();
@@ -105,6 +145,8 @@ export default function Profile() {
             {email ? <Text style={styles.email}>{email}</Text> : null}
           </View>
         </View>
+
+        {notice ? <Text style={styles.notice}>{notice}</Text> : null}
 
         <View style={styles.card}>
           <ListRow
@@ -143,7 +185,11 @@ export default function Profile() {
       </ScrollView>
 
       {openSheet === "job" ? (
-        <JobSheet selected={job ?? ""}onSelect={() => {}} onClose={closeSheet} />
+        <JobSheet
+          selected={job ?? ""}
+          onSelect={() => {}}
+          onClose={closeSheet}
+        />
       ) : null}
       {openSheet === "nickname" ? (
         <NicknameSheet
@@ -152,7 +198,9 @@ export default function Profile() {
           onClose={closeSheet}
         />
       ) : null}
-      {openSheet === "password" ? <PasswordSheet onClose={closeSheet} /> : null}
+      {openSheet === "password" ? (
+        <PasswordSheet onSave={handleUpdatePassword} onClose={closeSheet} />
+      ) : null}
       {openSheet === "theme" ? <ThemeSheet onClose={closeSheet} /> : null}
     </View>
   );
@@ -200,6 +248,10 @@ const createStyles = (colors: ThemeColors) =>
     email: {
       ...typography.bodySmall,
       color: colors.textTertiary,
+    },
+    notice: {
+      ...typography.bodySmall,
+      color: colors.textBrand,
     },
     card: {
       overflow: "hidden",
