@@ -31,6 +31,52 @@
         }
       }
     },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "로그인",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["login_id", "password"],
+                "properties": {
+                  "login_id": { "type": "string", "example": "test1" },
+                  "password": { "type": "string", "example": "haru1234" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "로그인 성공. accessToken은 14일 유효한 JWT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIs..." },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "integer", "example": 1 },
+                        "login_id": { "type": "string", "example": "test1" },
+                        "nickname": { "type": "string", "example": "tester" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "아이디 또는 비밀번호 누락" },
+          "401": { "description": "아이디가 없거나 비밀번호가 틀림 (같은 문구)" }
+        }
+      }
+    },
     "/api/job-roles": {
       "get": {
         "tags": ["job-roles"],
