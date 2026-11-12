@@ -146,8 +146,6 @@ export default function Profile() {
           </View>
         </View>
 
-        {notice ? <Text style={styles.notice}>{notice}</Text> : null}
-
         <View style={styles.card}>
           <ListRow
             label="희망 직무"
@@ -183,6 +181,12 @@ export default function Profile() {
           <ListRow label="회원 탈퇴" danger />
         </View>
       </ScrollView>
+
+      {notice ? (
+        <View style={styles.toast} pointerEvents="none">
+          <Text style={styles.toastText}>{notice}</Text>
+        </View>
+      ) : null}
 
       {openSheet === "job" ? (
         <JobSheet
@@ -249,9 +253,21 @@ const createStyles = (colors: ThemeColors) =>
       ...typography.bodySmall,
       color: colors.textTertiary,
     },
-    notice: {
+    // 화면 하단에 떠 있는 안내 문구
+    toast: {
+      position: "absolute",
+      left: spacing.xl,
+      right: spacing.xl,
+      bottom: spacing.xl,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      borderRadius: radius.md,
+      backgroundColor: colors.bgInverse,
+      alignItems: "center",
+    },
+    toastText: {
       ...typography.bodySmall,
-      color: colors.textBrand,
+      color: colors.textInverse,
     },
     card: {
       overflow: "hidden",
