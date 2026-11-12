@@ -30,18 +30,17 @@ function isNightNow() {
   return hour >= NIGHT_START_HOUR || hour < NIGHT_END_HOUR;
 }
 
-// 시간대별 테마일 때만 시각을 확인해서 18시, 6시에 맞춰 바뀌게 함
+// 시간대별 테마일 때만 1분마다 다시 그려서 18시, 6시에 맞춰 바뀌게 함
 function useIsNight(enabled: boolean) {
-  const [night, setNight] = useState(isNightNow);
+  const [, setTick] = useState(0);
 
   useEffect(() => {
     if (!enabled) return;
-    setNight(isNightNow());
-    const timer = setInterval(() => setNight(isNightNow()), CLOCK_CHECK_MS);
+    const timer = setInterval(() => setTick((tick) => tick + 1), CLOCK_CHECK_MS);
     return () => clearInterval(timer);
   }, [enabled]);
 
-  return night;
+  return isNightNow();
 }
 
 const ThemeContext = createContext<ThemeValue | null>(null);
