@@ -1,6 +1,5 @@
 export const JOBS = ["프론트엔드", "백엔드", "모바일 앱", "데이터 분석", "UI/UX", "서비스 기획"];
 
-// 화면 표기와 DB의 job_roles.name이 달라서 id를 찾을 때 씀
 export const JOB_ROLE_NAMES: Record<string, string> = {
   프론트엔드: "프론트엔드 개발자",
   백엔드: "백엔드 개발자",
