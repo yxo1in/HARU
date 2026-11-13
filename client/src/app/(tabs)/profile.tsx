@@ -1,7 +1,15 @@
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Platform,
+} from "react-native";
 import {
   JobSheet,
   NicknameSheet,
@@ -73,16 +81,22 @@ export default function Profile() {
 
   useEffect(() => {
     (async () => {
-      const token = await getToken();
-      const res = await fetch(`${API_URL}/api/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.status === 401) {
-        await removeToken();
-        router.replace("/");
-        return;
+      try {
+        const token = await getToken();
+        const res = await fetch(`${API_URL}/api/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === 401) {
+          await removeToken();
+          router.replace("/");
+          return;
+        }
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        setProfile(await res.json());
+      } catch (e) {
+        console.log("profile load failed:", e, API_URL);
+        setNotice("프로필을 불러오지 못했어요.");
       }
-      setProfile(await res.json());
     })();
   }, []);
 
@@ -116,6 +130,41 @@ export default function Profile() {
     } catch {
       return "서버에 연결할 수 없어요.";
     }
+  };
+
+  const deleteUser = async () => {
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/profile/deleteUser`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401 || res.ok) {
+        await removeToken();
+        router.replace("/");
+        return;
+      }
+      Alert.alert("탈퇴하지 못했어요", "잠시 후 다시 시도해 주세요.");
+    } catch {
+      Alert.alert("서버에 연결할 수 없어요", "네트워크를 확인해 주세요.");
+    }
+  };
+
+  const confirmDeleteUser = () => {
+    const message =
+      "탈퇴하면 계정과 기록이 모두 삭제되고 되돌릴 수 없어요. 정말 탈퇴할까요?";
+
+    if (Platform.OS === "web") {
+      if (window.confirm(message)) {
+        deleteUser();
+      }
+      return;
+    }
+
+    Alert.alert("회원 탈퇴", message, [
+      { text: "취소", style: "cancel" },
+      { text: "탈퇴", style: "destructive", onPress: deleteUser },
+    ]);
   };
 
   const logout = async () => {
@@ -178,7 +227,7 @@ export default function Profile() {
         <View style={styles.card}>
           <ListRow label="로그아웃" onPress={logout} />
           <View style={styles.divider} />
-          <ListRow label="회원 탈퇴" danger />
+          <ListRow label="회원 탈퇴" danger onPress={confirmDeleteUser} />
         </View>
       </ScrollView>
 
