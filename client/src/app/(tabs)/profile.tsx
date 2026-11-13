@@ -25,7 +25,7 @@ import {
   type ThemeColors,
 } from "@/constants/theme";
 import { getToken, removeToken } from "@/lib/token";
-import { JOB_ROLE_NAMES } from "@/constants/jobs";
+import { JOB_ROLE_NAMES, JOBS } from "@/constants/jobs";
 
 type ListRowProps = {
   label: string;
@@ -100,6 +100,44 @@ export default function Profile() {
     })();
   }, []);
 
+  const handleUpdateJob = async (newJob: string) => {
+    try {
+      const newJobRoleId = JOBS.indexOf(newJob) + 1;
+      // console.log(newJobRoleId);
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/profile/updateJob`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ newJobRoleId }),
+      });
+      if (res.status === 401) {
+        await removeToken();
+        router.replace("/");
+        return null;
+      }
+      if (!res.ok) {
+        const data = await res.json();
+        return data.error ?? "직무를 바꾸지 못했어요.";
+      }
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              jobRoleId: newJobRoleId,
+              jobRoleName: JOB_ROLE_NAMES[newJob],
+            }
+          : prev,
+      );
+      closeSheet();
+      setNotice("직무를 변경했어요.");
+      return null;
+    } catch {
+      return "서버에 연결할 수 없어요.";
+    }
+  };
   // 실패하면 에러 문구를 돌려줘서 시트에 보여줌
   const handleUpdatePassword = async (
     currentPassword: string,
@@ -240,7 +278,7 @@ export default function Profile() {
       {openSheet === "job" ? (
         <JobSheet
           selected={job ?? ""}
-          onSelect={() => {}}
+          onSelect={handleUpdateJob}
           onClose={closeSheet}
         />
       ) : null}
