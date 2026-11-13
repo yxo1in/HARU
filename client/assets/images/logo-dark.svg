@@ -1,0 +1,14 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="131.44" height="49.6" viewBox="0 0 131.44 49.6" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Logo">
+<path id="h" d="M4.96 4.96V31M4.96 31V44.64M4.96 31C4.96 23.56 9.92 19.84 14.88 19.84C19.84 19.84 23.56 23.56 23.56 31V44.64" stroke-width="8.06" stroke-linecap="round" stroke-linejoin="round" stroke="#F2F1FA"/>
+<circle id="a (Haru)" cx="49.6" cy="32.24" r="16.12" fill="#FFD15C"/>
+<rect id="Eye L" x="43.4" y="26.66" width="3.72" height="9.3" rx="1.86" fill="#141414"/>
+<rect id="Eye R" x="52.08" y="26.66" width="3.72" height="9.3" rx="1.86" fill="#141414"/>
+<path id="a stem" d="M63.86 19.84V44.64" stroke-width="8.06" stroke-linecap="round" stroke-linejoin="round" stroke="#F2F1FA"/>
+<path id="r" d="M80.6 19.84V31M80.6 31V44.64M80.6 31C80.6 23.56 85.56 19.84 94.24 19.84" stroke-width="8.06" stroke-linecap="round" stroke-linejoin="round" stroke="#F2F1FA"/>
+<path id="u" d="M104.16 19.84V33.48C104.16 40.92 109.12 44.64 114.08 44.64C119.04 44.64 122.76 40.92 122.76 33.48M122.76 33.48V19.84M122.76 33.48V44.64" stroke-width="8.06" stroke-linecap="round" stroke-linejoin="round" stroke="#F2F1FA"/>
+<rect id="Ray" x="48.05" y="7.44" width="3.1" height="6.2" rx="1.55" fill="#FFD15C"/>
+<rect id="Ray_2" x="37.5438" y="17.9918" width="3.1" height="6.2" rx="1.55" transform="rotate(135 37.5438 17.9918)" fill="#FFD15C"/>
+<rect id="Ray_3" x="63.8482" y="20.1838" width="3.1" height="6.2" rx="1.55" transform="rotate(-135 63.8482 20.1838)" fill="#FFD15C"/>
+</g>
+</svg>
