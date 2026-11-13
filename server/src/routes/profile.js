@@ -88,4 +88,18 @@ router.patch("/updateNickname", async (req, res) => {
   }
 });
 
+router.delete("/deleteUser", async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM users WHERE id=?`, [req.userId]);
+    if (result.affectedRows === 0) {
+      return res.status(401).json({ error: "로그인이 필요해요." });
+    }
+
+    res.json({ message: "회원 탈퇴가 완료됐어요." });
+  } catch (err) {
+    console.error("deleteUser failed:", err);
+    res.status(500).json({ error: "잠시 후 다시 시도해 주세요." });
+  }
+});
+
 module.exports = router;
