@@ -103,4 +103,27 @@ router.delete("/deleteUser", async (req, res) => {
   }
 });
 
+router.patch("/updateJob", async (req, res) => {
+  const { newJobRoleId } = req.body;
+  console.log(newJobRoleId);
+  if (!newJobRoleId) {
+    return res.status(400).json({ error: "변경할 직무를 선택해 주세요." });
+  }
+
+  try {
+    const [result] = await pool.query(
+      `UPDATE users SET job_role_id = ? WHERE id = ?`,
+      [newJobRoleId, req.userId],
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "사용자를 찾을 수 없어요." });
+    }
+
+    return res.status(200).json({ message: "직무가 변경되었습니다." });
+  } catch (err) {
+    console.error("updateJob error:", err);
+    return res.status(500).json({ error: "직무를 바꾸지 못했어요." });
+  }
+});
 module.exports = router;
