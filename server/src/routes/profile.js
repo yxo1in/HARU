@@ -121,9 +121,9 @@ router.patch("/updateJob", async (req, res) => {
     }
 
     return res.status(200).json({ message: "직무가 변경되었습니다." });
-  } catch (err) {
+  } catch (err) {9
     console.error("updateJob error:", err);
-    return res.status(500).json({ error: "직무를 바꾸지 못했어요." });
+    return res.status(400).json({ error: "직무를 바꾸지 못했어요." });
   }
 });
 module.exports = router;
