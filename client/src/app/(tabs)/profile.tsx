@@ -170,6 +170,36 @@ export default function Profile() {
     }
   };
 
+  const updateNickname = async (newNickname: string) => {
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/profile/updateNickname`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ newNickname }),
+      });
+      if (res.status === 401) {
+        await removeToken();
+        router.replace("/");
+        return null;
+      }
+      if (!res.ok) {
+        const data = await res.json();
+        return data.error ?? "닉네임을 바꾸지 못했어요.";
+      }
+      setProfile((prev) => (prev ? { ...prev, nickname: newNickname } : prev));
+      closeSheet();
+      setNotice("닉네임을 변경했어요.");
+      return null;
+    } catch (err) {
+      console.log(err);
+      return "서버에 연결할 수 없어요.";
+    }
+  };
+
   const deleteUser = async () => {
     try {
       const token = await getToken();
@@ -285,7 +315,7 @@ export default function Profile() {
       {openSheet === "nickname" ? (
         <NicknameSheet
           initialValue={nickname}
-          onSave={() => {}}
+          onSave={updateNickname}
           onClose={closeSheet}
         />
       ) : null}
