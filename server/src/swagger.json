@@ -1,12 +1,48 @@
 {
   "openapi": "3.0.0",
-  "info": { "title": "HARU API", "version": "1.0.0" },
+  "info": {
+    "title": "HARU API",
+    "version": "1.0.0",
+    "description": "HARU 서버 API. 인증이 필요한 API는 우측 상단 Authorize에 로그인 응답의 accessToken을 넣고 호출하세요."
+  },
   "servers": [{ "url": "http://localhost:4000" }],
+  "tags": [
+    { "name": "health", "description": "서버 상태" },
+    { "name": "auth", "description": "회원가입 / 로그인" },
+    { "name": "job-roles", "description": "직무 목록" },
+    { "name": "home", "description": "홈 화면" },
+    { "name": "profile", "description": "내 프로필 / 계정 관리" }
+  ],
   "paths": {
+    "/api/health": {
+      "get": {
+        "tags": ["health"],
+        "summary": "서버 + DB 연결 상태 확인",
+        "responses": {
+          "200": {
+            "description": "서버와 DB 모두 정상",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "name": { "type": "string", "example": "HARU" },
+                    "db": { "type": "string", "example": "connected" }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
     "/api/auth/register": {
       "post": {
         "tags": ["auth"],
         "summary": "회원가입",
+        "description": "- login_id: 영문 소문자 + 숫자 4~20자\n- password: 8~64자, 영문과 숫자 각각 1개 이상\n- nickname: 공백 제외 2~10자 (앞뒤 공백은 잘라서 저장)\n- job_role_id: 선택. 정수여야 하며 job_roles에 있는 id",
         "requestBody": {
           "required": true,
           "content": {
@@ -15,19 +51,49 @@
                 "type": "object",
                 "required": ["login_id", "password", "nickname"],
                 "properties": {
-                  "login_id": { "type": "string", "example": "test1" },
-                  "password": { "type": "string", "example": "haru1234" },
+                  "login_id": { "type": "string", "pattern": "^[a-z0-9]{4,20}$", "example": "test1" },
+                  "password": { "type": "string", "minLength": 8, "maxLength": 64, "example": "haru1234" },
                   "nickname": { "type": "string", "example": "tester" },
-                  "job_role_id": { "type": "integer", "nullable": true }
+                  "job_role_id": { "type": "integer", "nullable": true, "example": 1 }
                 }
               }
             }
           }
         },
         "responses": {
-          "201": { "description": "가입 성공" },
-          "400": { "description": "입력값 오류" },
-          "409": { "description": "아이디 또는 닉네임 중복" }
+          "201": {
+            "description": "가입 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer", "example": 1 },
+                    "nickname": { "type": "string", "example": "tester" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력값 오류 또는 존재하지 않는 직무",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "아이디는 영문 소문자와 숫자 4~20자로 입력해 주세요." }
+              }
+            }
+          },
+          "409": {
+            "description": "아이디 또는 닉네임 중복",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "이미 사용 중인 아이디 or 닉네임입니다." }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalError" }
         }
       }
     },
@@ -52,7 +118,7 @@
         },
         "responses": {
           "200": {
-            "description": "로그인 성공. accessToken은 14일 유효한 JWT",
+            "description": "로그인 성공. accessToken은 14일 유효한 JWT (payload: userId, login_id)",
             "content": {
               "application/json": {
                 "schema": {
@@ -72,8 +138,25 @@
               }
             }
           },
-          "400": { "description": "아이디 또는 비밀번호 누락" },
-          "401": { "description": "아이디가 없거나 비밀번호가 틀림 (같은 문구)" }
+          "400": {
+            "description": "아이디 또는 비밀번호 누락",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "아이디, 비밀번호를 입력해 주세요." }
+              }
+            }
+          },
+          "401": {
+            "description": "아이디가 없거나 비밀번호가 틀림 (같은 문구)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "아이디 또는 비밀번호가 맞지 않아요." }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalError" }
         }
       }
     },
@@ -81,8 +164,51 @@
       "get": {
         "tags": ["job-roles"],
         "summary": "직무 목록",
+        "description": "sort_order 오름차순. 로그인 없이 호출 가능 (회원가입 화면에서 사용)",
         "responses": {
-          "200": { "description": "sort_order 오름차순 직무 목록" }
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobRoles": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/JobRole" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/home": {
+      "get": {
+        "tags": ["home"],
+        "summary": "홈 화면 정보",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "nickname": { "type": "string", "example": "tester" },
+                    "jobRoleId": { "type": "integer", "nullable": true, "example": 1 },
+                    "jobRoleName": { "type": "string", "nullable": true, "example": "프론트엔드 개발자" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalError" }
         }
       }
     },
@@ -108,7 +234,8 @@
               }
             }
           },
-          "401": { "description": "토큰이 없거나 유효하지 않음" }
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalError" }
         }
       }
     },
@@ -116,6 +243,7 @@
       "patch": {
         "tags": ["profile"],
         "summary": "비밀번호 변경",
+        "description": "newPassword는 8~64자, 영문과 숫자 각각 1개 이상. 구글 가입 계정(비밀번호 없음)은 항상 400",
         "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
@@ -133,9 +261,26 @@
           }
         },
         "responses": {
-          "200": { "description": "변경 성공" },
-          "400": { "description": "입력값 오류 또는 현재 비밀번호가 맞지 않음" },
-          "401": { "description": "토큰이 없거나 유효하지 않음" }
+          "200": {
+            "description": "변경 성공",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Message" },
+                "example": { "message": "비밀번호를 변경했어요." }
+              }
+            }
+          },
+          "400": {
+            "description": "입력값 오류 또는 현재 비밀번호가 맞지 않음",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "현재 비밀번호가 맞지 않아요." }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalError" }
         }
       }
     },
@@ -143,6 +288,7 @@
       "patch": {
         "tags": ["profile"],
         "summary": "닉네임 변경",
+        "description": "공백 제외 2~10자. 앞뒤 공백은 잘라서 저장",
         "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
@@ -159,10 +305,124 @@
           }
         },
         "responses": {
-          "200": { "description": "변경 성공" },
-          "400": { "description": "닉네임이 없거나 공백 제외 2~10자가 아님" },
-          "401": { "description": "토큰이 없거나 유효하지 않음" },
-          "409": { "description": "이미 사용 중인 닉네임" }
+          "200": {
+            "description": "변경 성공",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Message" },
+                "example": { "message": "닉네임을 변경했어요." }
+              }
+            }
+          },
+          "400": {
+            "description": "닉네임이 없거나 공백 제외 2~10자가 아님",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "닉네임은 공백 제외 2~10자로 입력해 주세요." }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": {
+            "description": "이미 사용 중인 닉네임",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "이미 사용 중인 닉네임입니다." }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/profile/updateJob": {
+      "patch": {
+        "tags": ["profile"],
+        "summary": "직무 변경",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["newJobRoleId"],
+                "properties": {
+                  "newJobRoleId": { "type": "integer", "description": "job_roles.id", "example": 2 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "변경 성공",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Message" },
+                "example": { "message": "직무가 변경되었습니다." }
+              }
+            }
+          },
+          "400": {
+            "description": "newJobRoleId 누락",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "변경할 직무를 선택해 주세요." }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": {
+            "description": "사용자를 찾을 수 없음",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "사용자를 찾을 수 없어요." }
+              }
+            }
+          },
+          "500": {
+            "description": "DB 오류 (존재하지 않는 직무 id도 현재는 여기로 떨어짐)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "직무를 바꾸지 못했어요." }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile/deleteUser": {
+      "delete": {
+        "tags": ["profile"],
+        "summary": "회원 탈퇴",
+        "description": "회원 행을 삭제. 답변/피드백/본인 전용 AI 질문은 FK CASCADE로 함께 삭제됨",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "탈퇴 성공",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Message" },
+                "example": { "message": "회원 탈퇴가 완료됐어요." }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": {
+            "description": "DB 오류",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "잠시 후 다시 시도해 주세요." }
+              }
+            }
+          }
         }
       }
     }
@@ -170,6 +430,43 @@
   "components": {
     "securitySchemes": {
       "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": { "error": { "type": "string" } }
+      },
+      "Message": {
+        "type": "object",
+        "properties": { "message": { "type": "string" } }
+      },
+      "JobRole": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "프론트엔드 개발자" }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "토큰이 없거나 유효하지 않음 (또는 탈퇴한 회원)",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": "로그인이 필요해요." }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "서버 내부 오류",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "error": "Internal Server Error" }
+          }
+        }
+      }
     }
   }
 }
