@@ -9,6 +9,8 @@ import {
 import { useColorScheme } from "react-native";
 import { themeAssets, type ThemeAssets } from "@/constants/assets";
 import { darkColors, lightColors, type ThemeColors } from "@/constants/theme";
+import AsyncStorage from "@react-native-async-storage/async-storage"
+
 
 export type ThemePreference = "시스템 설정" | "시간대별" | "라이트" | "다크";
 type Scheme = "light" | "dark";
@@ -20,7 +22,7 @@ type ThemeValue = {
   preference: ThemePreference;
   setPreference: (preference: ThemePreference) => void;
 };
-
+const THEME_KEY = "themePreference";
 const NIGHT_START_HOUR = 18;
 const NIGHT_END_HOUR = 6;
 const CLOCK_CHECK_MS = 60_000;
@@ -47,6 +49,18 @@ const ThemeContext = createContext<ThemeValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [preference, setPreference] = useState<ThemePreference>("시간대별");
+
+  function changePreference(next: ThemePreference) {
+    setPreference(next);
+    AsyncStorage.setItem(THEME_KEY, next);
+  }
+  useEffect(() => {
+    AsyncStorage.getItem(THEME_KEY).then((saved) => {
+       if (saved === "시스템 설정" || saved === "시간대별" || saved === "라이트" || saved === "다크") {
+        setPreference(saved);
+    }
+    })
+  }, [])
   const systemScheme = useColorScheme();
   const night = useIsNight(preference === "시간대별");
 
@@ -63,7 +77,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       colors: scheme === "dark" ? darkColors : lightColors,
       assets: themeAssets[scheme],
       preference,
-      setPreference,
+      setPreference: changePreference,
     }),
     [scheme, preference],
   );
