@@ -26,6 +26,8 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/job-roles", require("./routes/jobRoles"));
 
 const auth = require("./middleware/auth");
+
+// home
 app.use("/api/home", auth, require("./routes/home"));
 
 // profile

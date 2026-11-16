@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/button";
 import { ChartFrame, ChartLabel, ChartPoint } from "@/components/chart-frame";
@@ -15,7 +15,7 @@ import {
   type ThemeColors,
 } from "@/constants/theme";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { getToken, removeToken } from "@/lib/token";
 import { JOB_ROLE_NAMES } from "@/constants/jobs";
 
@@ -56,20 +56,35 @@ export default function Home() {
   };
 
   const [home, setHome] = useState<HomeData | null>(null);
-  useEffect(() => {
-    (async () => {
-      const token = await getToken();
-      const res = await fetch(`${API_URL}/api/home`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.status === 401) {
-        await removeToken();
-        router.replace("/");
-        return;
-      }
-      setHome(await res.json());
-    })();
-  }, []);
+  // 탭은 한 번 열리면 계속 떠 있으므로, 홈으로 돌아올 때마다 다시 불러옴
+  // (프로필에서 바꾼 닉네임/직무 반영)
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      (async () => {
+        try {
+          const token = await getToken();
+          const res = await fetch(`${API_URL}/api/home`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.status === 401) {
+            await removeToken();
+            router.replace("/");
+            return;
+          }
+          if (!res.ok) throw new Error(`status ${res.status}`);
+          const data = await res.json();
+          if (active) setHome(data);
+        } catch (e) {
+          console.log("home load failed:", e);
+        }
+      })();
+      // 응답 오기 전에 다른 탭으로 가면 결과를 버림
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   if (!home) return null;
   const { nickname, jobRoleName } = home;
@@ -204,3 +219,16 @@ const createStyles = (colors: ThemeColors) =>
       paddingBottom: spacing.xs,
     },
   });
+
+// ===================================================================
+// TODO: 홈 화면 API 연동 (번호 순서대로, 서버 TODO(0)~(7) 끝난 뒤)
+// ===================================================================
+// TODO(8):  HomeData 타입에 streak / last7Days / scores / quests 추가
+//           → 맨 위 DAYS / QUESTS / POINTS 예시 데이터 제거
+// TODO(9):  <StreakPill days={5} /> → days={home.streak}
+// TODO(10): 오늘의 목표 — quests 로 QUESTS 의 current 계산 + "0/3 완료" 개수 계산
+// TODO(11): 지난 7일 — DAYS → last7Days, date → 요일 글자("월"~"일") 변환 필요
+// TODO(12): 점수 흐름 — scores 로 점 좌표 계산 + 선은 react-native-svg 로 직접 그리기
+//           (지금 chartHomeLine 은 고정 이미지라 점수가 바뀌어도 모양 그대로)
+//           라벨: 첫 점수 / 최신 점수, "N회 전" / "최근"
+// TODO(13): scores 가 비어 있으면 빈 상태 (haru-empty 이미지)
