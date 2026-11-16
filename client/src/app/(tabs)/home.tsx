@@ -20,15 +20,6 @@ import { getToken, removeToken } from "@/lib/token";
 import { JOB_ROLE_NAMES } from "@/constants/jobs";
 
 // API 연동 전까지 쓰는 Figma 예시 데이터
-const DAYS = [
-  { day: "화", status: "missed" },
-  { day: "수", status: "done" },
-  { day: "목", status: "done" },
-  { day: "금", status: "done" },
-  { day: "토", status: "done" },
-  { day: "일", status: "done" },
-  { day: "월", status: "today" },
-] as const;
 
 const QUESTS = [
   { iconKey: "questWrite", title: "답변 1개 쓰기", current: 0, total: 1 },
@@ -53,6 +44,7 @@ export default function Home() {
     nickname: string;
     jobRoleId: number | null;
     jobRoleName: string | null;
+    last7Days: { date: string, day: string, status: "done" | "today" | "missed"}[];
   };
 
   const [home, setHome] = useState<HomeData | null>(null);
@@ -91,6 +83,8 @@ export default function Home() {
   const job = Object.keys(JOB_ROLE_NAMES).find(
     (key) => JOB_ROLE_NAMES[key] === jobRoleName,
   );
+  const {last7Days} = home
+  const DAYS = last7Days
   return (
     <View style={styles.container}>
       <ScreenHeader>
@@ -117,7 +111,7 @@ export default function Home() {
           <SectionHeader title="지난 7일" />
           <View style={styles.days}>
             {DAYS.map((item) => (
-              <StreakDay key={item.day} {...item} />
+              <StreakDay key={item.date} {...item} />
             ))}
           </View>
         </View>
@@ -221,7 +215,7 @@ const createStyles = (colors: ThemeColors) =>
   });
 
 // ===================================================================
-// TODO: 홈 화면 API 연동 (번호 순서대로, 서버 TODO(0)~(7) 끝난 뒤)
+// TODO: 홈 화면 API 연동 (번호 순서대로, 서버 TODO(1)~(7) 끝난 뒤)
 // ===================================================================
 // TODO(8):  HomeData 타입에 streak / last7Days / scores / quests 추가
 //           → 맨 위 DAYS / QUESTS / POINTS 예시 데이터 제거
