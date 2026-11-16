@@ -2,6 +2,11 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 
+function addDays(date, n) {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
 
 router.get("/", async (req, res) => {
   const [rows] = await pool.query(
@@ -10,27 +15,47 @@ router.get("/", async (req, res) => {
         WHERE u.id = ?`,
     [req.userId],
   );
-
+  
   const user = rows[0];
   if (!user) return res.status(401).json({ error: "로그인이 필요해요." });
+  
+  const [answerRows] = await pool.query(
+    `SELECT answer_date FROM answers
+    WHERE user_id = ? AND retry_of_answer_id IS NULL
+    ORDER BY answer_date desc`,
+    [req.userId],
+  );
 
+  const today = new Date(Date.now() + 9 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const last7Days = [];
+  const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+  for (let i = 6; i >= 0; i--) {
+    const date = addDays(today, -i);
+    const answered = answerRows.some((row) => row.answer_date === date);
+    const day = WEEKDAYS[new Date(`${date}T00:00:00Z`).getUTCDay()];
+    let status = "missed";
+    if (answered) status = "done";
+    else if (date === today) status = "today";
+
+    last7Days.push({ date, day, status });
+  }
   res.json({
     nickname: rows[0].nickname,
     jobRoleId: rows[0].jobRoleId,
     jobRoleName: rows[0].jobRoleName,
+    last7Days: last7Days  
   });
 });
+
 
 module.exports = router;
 
 // ===================================================================
 // TODO: 홈 API 확장 (번호 순서대로)
 // ===================================================================
-// TODO(0): 한국 시간 기준 날짜 헬퍼 — todayKST() → "YYYY-MM-DD", 날짜 ±n일 계산
-//          (DB 연결이 +09:00 이고 DATE 는 문자열로 옴)
-// TODO(0): 테스트용 더미 데이터 server/db/dummy.sql 먼저 작성
-//          - 최근 10일 정식 답변 (중간에 하루 빠뜨리기)
-//          - 재답변 1개, feedback_status='pending' 답변 1개 (계산에서 빠지는지 확인용)
 // TODO(1): 정식 답변 날짜 목록 조회
 //          answers 에서 user_id = ? AND retry_of_answer_id IS NULL, answer_date DESC
 //          → streak / last7Days / quests 계산에 같이 씀
