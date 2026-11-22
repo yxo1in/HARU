@@ -45,6 +45,7 @@ export default function Home() {
     jobRoleId: number | null;
     jobRoleName: string | null;
     last7Days: { date: string, day: string, status: "done" | "today" | "missed"}[];
+    streak: number
   };
 
   const [home, setHome] = useState<HomeData | null>(null);
@@ -90,7 +91,7 @@ export default function Home() {
       <ScreenHeader>
         <View style={styles.pills}>
           <JobPill job={job ?? "직무 선택"} />
-          <StreakPill days={5} />
+          <StreakPill days={home.streak} />
         </View>
       </ScreenHeader>
 
