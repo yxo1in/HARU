@@ -201,7 +201,34 @@
                   "properties": {
                     "nickname": { "type": "string", "example": "tester" },
                     "jobRoleId": { "type": "integer", "nullable": true, "example": 1 },
-                    "jobRoleName": { "type": "string", "nullable": true, "example": "프론트엔드 개발자" }
+                    "jobRoleName": { "type": "string", "nullable": true, "example": "프론트엔드 개발자" },
+                    "last7Days": {
+                      "type": "array",
+                      "description": "오늘 포함 최근 7일, 오래된 순",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "date": { "type": "string", "format": "date", "example": "2026-11-23" },
+                          "day": { "type": "string", "description": "요일 글자", "example": "월" },
+                          "status": { "type": "string", "enum": ["done", "missed", "today"], "description": "done=답변함, missed=안 함, today=오늘인데 아직 안 함" }
+                        }
+                      }
+                    },
+                    "streak": { "type": "integer", "description": "연속 답변 일수. 오늘 아직 안 했으면 어제까지로 계산", "example": 3 },
+                    "scores": {
+                      "type": "array",
+                      "description": "정식 답변 + 피드백 완료 점수 최근 6개, 오래된 순",
+                      "items": { "type": "integer" },
+                      "example": [75, 62, 68, 70, 78, 85]
+                    },
+                    "quests": {
+                      "type": "object",
+                      "properties": {
+                        "answeredToday": { "type": "boolean", "description": "오늘 정식 답변을 했는지", "example": true },
+                        "over80Today": { "type": "boolean", "description": "오늘 답변(정식 + 재답변) 중 80점 이상이 있는지", "example": false },
+                        "weeklyCount": { "type": "integer", "description": "이번 주 월요일부터 오늘까지 정식 답변 수", "example": 3 }
+                      }
+                    }
                   }
                 }
               }

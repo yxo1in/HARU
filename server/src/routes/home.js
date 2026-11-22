@@ -63,6 +63,22 @@ router.get("/", async (req, res) => {
 
   const scores = scoreRows.map((row) => row.score).reverse();
 
+  const weekday = new Date(`${today}T00:00:00Z`).getUTCDay();
+  const monday = addDays(today, -((weekday + 6) % 7));
+  const weeklyCount = answerRows.filter(
+    (row) => row.answer_date >= monday,
+  ).length;
+
+  // 오늘 답변(정식 + 재답변) 중 80점 이상이 하나라도 있는지
+  const [goodRows] = await pool.query(
+    `SELECT 1 FROM answers a
+      JOIN feedbacks f ON a.id = f.answer_id
+      WHERE a.user_id = ? AND a.answer_date = ? AND f.score >= 80
+      LIMIT 1`,
+    [req.userId, today],
+  );
+  const over80Today = goodRows.length > 0;
+
   res.json({
     nickname: rows[0].nickname,
     jobRoleId: rows[0].jobRoleId,
@@ -70,17 +86,8 @@ router.get("/", async (req, res) => {
     last7Days: last7Days,
     streak,
     scores,
+    quests: { answeredToday, over80Today, weeklyCount },
   });
 });
 
 module.exports = router;
-
-// ===================================================================
-// TODO: 홈 API 확장 (번호 순서대로)
-// ===================================================================
-// TODO(4): quests — { answeredToday, over80Today, weeklyCount }
-//          weeklyCount 는 이번 주 월요일(KST)부터 오늘까지 정식 답변 수
-// TODO(6): streak — 연속 답변 일수
-//          오늘 했으면 오늘부터, 안 했으면 어제부터 하루씩 거슬러 올라가며 셈
-// TODO(7): res.json 에 streak / last7Days / scores / quests 추가
-//          + swagger.json 의 GET /api/home 응답 형식도 추가

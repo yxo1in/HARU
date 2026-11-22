@@ -19,14 +19,29 @@ import { useCallback, useState } from "react";
 import { getToken, removeToken } from "@/lib/token";
 import { JOB_ROLE_NAMES } from "@/constants/jobs";
 
+const WEEKLY_GOAL = 5;
+
+type Quests = {
+  answeredToday: boolean;
+  over80Today: boolean;
+  weeklyCount: number;
+};
+
+// 서버의 quests 값으로 오늘의 목표 3개를 만듦
+function buildQuests(quests: Quests) {
+  return [
+    { iconKey: "questWrite", title: "답변 1개 쓰기", current: quests.answeredToday ? 1 : 0, total: 1 },
+    { iconKey: "questTarget", title: "80점 넘기기", current: quests.over80Today ? 1 : 0, total: 1 },
+    {
+      iconKey: "questCalendar",
+      title: `이번 주 답변 ${WEEKLY_GOAL}개`,
+      current: Math.min(quests.weeklyCount, WEEKLY_GOAL),
+      total: WEEKLY_GOAL,
+    },
+  ] as const;
+}
+
 // API 연동 전까지 쓰는 Figma 예시 데이터
-
-const QUESTS = [
-  { iconKey: "questWrite", title: "답변 1개 쓰기", current: 0, total: 1 },
-  { iconKey: "questTarget", title: "80점 넘기기", current: 0, total: 1 },
-  { iconKey: "questCalendar", title: "이번 주 답변 5개", current: 3, total: 5 },
-] as const;
-
 const POINTS = [
   [20, 62],
   [72.81, 50],
@@ -46,6 +61,8 @@ export default function Home() {
     jobRoleName: string | null;
     last7Days: { date: string, day: string, status: "done" | "today" | "missed"}[];
     streak: number
+    scores: number[];
+    quests: Quests;
   };
 
   const [home, setHome] = useState<HomeData | null>(null);
@@ -86,6 +103,8 @@ export default function Home() {
   );
   const {last7Days} = home
   const DAYS = last7Days
+  const quests = buildQuests(home.quests);
+  const doneCount = quests.filter((quest) => quest.current >= quest.total).length;
   return (
     <View style={styles.container}>
       <ScreenHeader>
@@ -139,9 +158,9 @@ export default function Home() {
 
         <View style={styles.section}>
           <View style={styles.goalsHeader}>
-            <SectionHeader title="오늘의 목표" trailing="0/3 완료" />
+            <SectionHeader title="오늘의 목표" trailing={`${doneCount}/${quests.length} 완료`} />
           </View>
-          {QUESTS.map(({ iconKey, ...quest }) => (
+          {quests.map(({ iconKey, ...quest }) => (
             <QuestItem key={quest.title} icon={assets[iconKey]} {...quest} />
           ))}
         </View>
@@ -216,13 +235,8 @@ const createStyles = (colors: ThemeColors) =>
   });
 
 // ===================================================================
-// TODO: 홈 화면 API 연동 (번호 순서대로, 서버 TODO(1)~(7) 끝난 뒤)
+// TODO: 홈 화면 API 연동 (번호 순서대로)
 // ===================================================================
-// TODO(8):  HomeData 타입에 streak / last7Days / scores / quests 추가
-//           → 맨 위 DAYS / QUESTS / POINTS 예시 데이터 제거
-// TODO(9):  <StreakPill days={5} /> → days={home.streak}
-// TODO(10): 오늘의 목표 — quests 로 QUESTS 의 current 계산 + "0/3 완료" 개수 계산
-// TODO(11): 지난 7일 — DAYS → last7Days, date → 요일 글자("월"~"일") 변환 필요
 // TODO(12): 점수 흐름 — scores 로 점 좌표 계산 + 선은 react-native-svg 로 직접 그리기
 //           (지금 chartHomeLine 은 고정 이미지라 점수가 바뀌어도 모양 그대로)
 //           라벨: 첫 점수 / 최신 점수, "N회 전" / "최근"
