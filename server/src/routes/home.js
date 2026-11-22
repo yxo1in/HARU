@@ -52,12 +52,24 @@ router.get("/", async (req, res) => {
     checkDay = addDays(checkDay, -1);
   }
 
+  const [scoreRows] = await pool.query(
+    `SELECT f.score FROM answers a
+      JOIN feedbacks f ON a.id = f.answer_id
+      WHERE a.user_id = ? AND a.retry_of_answer_id IS NULL AND a.feedback_status = 'done'
+      ORDER BY a.answer_date DESC
+      LIMIT 6`,
+    [req.userId],
+  );
+
+  const scores = scoreRows.map((row) => row.score).reverse();
+
   res.json({
     nickname: rows[0].nickname,
     jobRoleId: rows[0].jobRoleId,
     jobRoleName: rows[0].jobRoleName,
     last7Days: last7Days,
     streak,
+    scores,
   });
 });
 
@@ -66,10 +78,6 @@ module.exports = router;
 // ===================================================================
 // TODO: 홈 API 확장 (번호 순서대로)
 // ===================================================================
-// TODO(2): 점수 최근 6개 조회
-//          answers JOIN feedbacks, 정식 답변 + feedback_status = 'done'
-//          최신 6개 가져와서 오래된 순으로 뒤집기 (answer_date 도 같이 → over80Today 계산용)
-// TODO(3): scores — [62, 70, ...] 오래된 → 최신
 // TODO(4): quests — { answeredToday, over80Today, weeklyCount }
 //          weeklyCount 는 이번 주 월요일(KST)부터 오늘까지 정식 답변 수
 // TODO(6): streak — 연속 답변 일수
