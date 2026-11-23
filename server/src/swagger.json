@@ -11,7 +11,8 @@
     { "name": "auth", "description": "회원가입 / 로그인" },
     { "name": "job-roles", "description": "직무 목록" },
     { "name": "home", "description": "홈 화면" },
-    { "name": "profile", "description": "내 프로필 / 계정 관리" }
+    { "name": "profile", "description": "내 프로필 / 계정 관리" },
+    { "name": "record", "description": "기록 탭 (통계 / 기록 목록)" }
   ],
   "paths": {
     "/api/health": {
@@ -450,6 +451,135 @@
               }
             }
           }
+        }
+      }
+    },
+    "/api/stats/summary": {
+      "get": {
+        "tags": ["record"],
+        "summary": "기록 요약 (평균 / 총 답변 / 최고 점수)",
+        "description": "정식 답변 + 피드백 완료 기준. 기록이 없으면 averageScore, bestScore 는 null, totalAnswers 는 0",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "averageScore": { "type": "integer", "nullable": true, "example": 79 },
+                    "totalAnswers": { "type": "integer", "example": 24 },
+                    "bestScore": { "type": "integer", "nullable": true, "example": 92 }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/stats/scores": {
+      "get": {
+        "tags": ["record"],
+        "summary": "기록 탭 점수 흐름",
+        "description": "정식 답변 + 피드백 완료만, 최신 limit 개를 오래된 순으로",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "category", "in": "query", "required": false, "description": "질문 유형. 생략하면 전체", "schema": { "type": "string", "enum": ["intro", "motivation", "personality", "technical"] } },
+          { "name": "limit", "in": "query", "required": false, "description": "기본 8, 최대 30", "schema": { "type": "integer", "default": 8 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "points": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "answerId": { "type": "integer", "example": 31 },
+                          "answerDate": { "type": "string", "format": "date", "example": "2026-11-15" },
+                          "score": { "type": "integer", "example": 62 }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 쿼리 값",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "질문 유형이 올바르지 않아요." }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/answers": {
+      "get": {
+        "tags": ["record"],
+        "summary": "기록 목록",
+        "description": "정식 답변만 최신 날짜순. 재답변은 retryCount 로 개수만. nextCursor 가 null 이면 마지막 페이지",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "category", "in": "query", "required": false, "description": "질문 유형. 생략하면 전체", "schema": { "type": "string", "enum": ["intro", "motivation", "personality", "technical"] } },
+          { "name": "cursor", "in": "query", "required": false, "description": "이전 응답의 nextCursor (그 답변보다 이전 날짜부터)", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "required": false, "description": "기본 20, 최대 50", "schema": { "type": "integer", "default": 20 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "integer", "example": 42 },
+                          "answerDate": { "type": "string", "format": "date", "example": "2026-11-23" },
+                          "category": { "type": "string", "enum": ["intro", "motivation", "personality", "technical"], "example": "motivation" },
+                          "question": { "type": "string", "example": "우리 회사에 지원한 이유는 무엇인가요?" },
+                          "score": { "type": "integer", "nullable": true, "description": "피드백 완료가 아니면 null", "example": 88 },
+                          "feedbackStatus": { "type": "string", "enum": ["pending", "done", "failed"], "example": "done" },
+                          "retryCount": { "type": "integer", "example": 1 }
+                        }
+                      }
+                    },
+                    "nextCursor": { "type": "integer", "nullable": true, "example": 38 }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 쿼리 값",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "질문 유형이 올바르지 않아요." }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalError" }
         }
       }
     }

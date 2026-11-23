@@ -33,6 +33,10 @@ app.use("/api/home", auth, require("./routes/home"));
 // profile
 app.use("/api/profile", auth, require("./routes/profile"));
 
+// 기록 탭
+app.use("/api/stats", auth, require("./routes/stats"));
+app.use("/api/answers", auth, require("./routes/answers"));
+
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });

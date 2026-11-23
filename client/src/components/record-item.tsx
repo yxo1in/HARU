@@ -5,7 +5,8 @@ import { useThemedStyles } from "@/components/theme-provider";
 type RecordItemProps = {
   meta: string;
   question: string;
-  score: number;
+  // 채점이 끝나지 않았으면 null → "-" 로 표시
+  score: number | null;
   onPress?: () => void;
 };
 
@@ -20,8 +21,8 @@ export function RecordItem({ meta, question, score, onPress }: RecordItemProps) 
         </Text>
       </View>
       <View style={styles.score}>
-        <Text style={styles.scoreValue}>{score}</Text>
-        <Text style={styles.scoreUnit}>점</Text>
+        <Text style={styles.scoreValue}>{score ?? "-"}</Text>
+        {score !== null && <Text style={styles.scoreUnit}>점</Text>}
       </View>
     </Pressable>
   );
