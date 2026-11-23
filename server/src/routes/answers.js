@@ -65,3 +65,40 @@ router.get("/", async (req, res) => {
 });
 
 module.exports = router;
+
+// ===================================================================
+// TODO: 답변 API 추가 (번호 순서대로, README 6-1 / 6-2 / 6-4)
+// ===================================================================
+// TODO(1): Gemini 채점 함수 — server/src/lib/gemini.js 새 파일
+//          입력: 질문, 카테고리, 직무, 답변 → 출력 { score, strength, weakness, suggestion }
+//          responseMimeType: "application/json" + responseSchema 로 형식 강제, 타임아웃 30초
+//          score 가 0~100 정수가 아니면 실패로 처리, 사용한 모델 이름도 같이 돌려주기
+//          키는 process.env.GEMINI_KEY
+// TODO(2): 한국 날짜 헬퍼 공용으로 빼기
+//          home.js 의 today 계산(9시간 더하기)을 server/src/lib/date.js 로 옮겨서 같이 쓰기
+// TODO(3): POST /  답변 제출 + 채점
+//          body: { questionId, content, retryOfAnswerId? }
+//          1. content 1~1000자 확인 → 아니면 400
+//          2. questionId 질문이 있는지 → 없으면 404
+//          3. 재답변이면 원본 확인
+//             (id = retryOfAnswerId AND user_id = 나 AND question_id 같음 AND 원본이 정식 답변)
+//             → 없으면 422, 오늘 재답변 5개 이상이면 429
+//          4. answers INSERT (answer_date = 한국 날짜, feedback_status = 'pending')
+//             → MySQL 1062 에러(오늘 정식 답변 이미 있음) 면 409
+//          5. Gemini 채점 (TODO(1))
+//             성공 → 트랜잭션으로 feedbacks INSERT + feedback_status = 'done'
+//             실패 → feedback_status = 'failed' (답변은 남김)
+//          6. 201 { answer, feedback }  채점 실패면 feedback: null
+// TODO(4): delta 계산 (피드백 화면의 "+8")
+//          재답변: 원본 답변 점수와의 차이
+//          정식 답변: 바로 이전 정식 답변(done) 점수와의 차이 / 비교 대상 없으면 null
+// TODO(5): POST /:id/feedback  채점 다시 하기
+//          내 답변 + feedback_status = 'failed' 일 때만 TODO(3) 의 5번만 다시 실행
+//          남의 답변 403, 없으면 404, failed 가 아니면 409
+// TODO(6): GET /:id  기록 상세
+//          { answer, question, feedback(delta 포함), retries: [{ id, score, feedbackStatus, createdAt }] }
+//          재답변 id 로 조회하면 retries 는 빈 배열 / 남의 답변 403, 없으면 404
+// TODO(7): 오래된 pending 정리 — index.js 에서 서버 시작 시 + 5분마다
+//          UPDATE answers SET feedback_status = 'failed'
+//          WHERE feedback_status = 'pending' AND created_at < NOW() - INTERVAL 5 MINUTE
+// TODO(8): swagger.json 에 위 API 3개 추가
