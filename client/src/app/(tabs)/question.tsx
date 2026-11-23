@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/button";
 import { Chip } from "@/components/chip";
@@ -9,6 +9,10 @@ import { ScreenHeader } from "@/components/screen-header";
 import { SectionHeader } from "@/components/section-header";
 import { spacing, typography, type ThemeColors } from "@/constants/theme";
 import { useThemedStyles } from "@/components/theme-provider";
+import { getJson } from "@/lib/api";
+import { recordMeta, todayString, type RecordListItem, type RecordPage } from "@/lib/records";
+
+const PAST_COUNT = 3;
 
 // API 연동 전까지 쓰는 Figma 예시 데이터
 const CATEGORIES = ["랜덤", "자기소개", "지원동기", "인성", "기술"];
@@ -19,14 +23,12 @@ const TODAY_RESULT = {
   score: 82,
 };
 
-const PAST_QUESTIONS = [
-  { meta: "자기소개, 10월 25일", question: "1분 동안 자기소개를 해 주세요.", score: 78 },
-  { meta: "인성, 10월 24일", question: "협업 중 갈등을 해결한 경험이 있나요?", score: 86 },
-  { meta: "기술, 10월 22일", question: "최근에 공부한 기술을 설명해 주세요.", score: 71 },
-];
-
-function openRecord() {
-  router.push("/record-detail");
+function openRecord(id?: number) {
+  router.push(
+    id === undefined
+      ? "/record-detail"
+      : { pathname: "/record-detail", params: { id: String(id) } },
+  );
 }
 
 function StartQuestion() {
@@ -63,7 +65,7 @@ function TodayDone() {
         <Text style={styles.title}>{"오늘 답변은\n끝났어요"}</Text>
         <Text style={styles.subtitle}>내일 0시에 새 질문이 열려요</Text>
       </View>
-      <RecordItem {...TODAY_RESULT} onPress={openRecord} />
+      <RecordItem {...TODAY_RESULT} onPress={() => openRecord()} />
       <Button
         label="같은 질문 다시 답하기"
         variant="secondary"
@@ -77,6 +79,30 @@ export default function Question() {
   const styles = useThemedStyles(createStyles);
   // API 연동 전까지 오늘 답변 여부를 주소의 done 값으로 구분함
   const { done } = useLocalSearchParams<{ done?: string }>();
+  const [pastItems, setPastItems] = useState<RecordListItem[] | null>(null);
+
+  // 탭으로 돌아올 때마다 지난 질문을 다시 불러옴.
+  // 오늘 답변은 위쪽(오늘 결과)에 따로 나오므로 빼고 최근 3개만 보여줌
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      (async () => {
+        try {
+          const page = await getJson<RecordPage>(`/api/answers?limit=${PAST_COUNT + 1}`);
+          if (!active || !page) return;
+          const today = todayString();
+          setPastItems(
+            page.items.filter((item) => item.answerDate !== today).slice(0, PAST_COUNT),
+          );
+        } catch (e) {
+          console.log("past questions load failed:", e);
+        }
+      })();
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   return (
     <View style={styles.container}>
@@ -93,8 +119,17 @@ export default function Question() {
             trailing="전체 보기"
             onPressTrailing={() => router.navigate("/record")}
           />
-          {PAST_QUESTIONS.map((item) => (
-            <RecordItem key={item.meta} {...item} onPress={openRecord} />
+          {pastItems?.length === 0 && (
+            <Text style={styles.subtitle}>아직 답한 질문이 없어요</Text>
+          )}
+          {pastItems?.map((item) => (
+            <RecordItem
+              key={item.id}
+              meta={recordMeta(item)}
+              question={item.question}
+              score={item.score}
+              onPress={() => openRecord(item.id)}
+            />
           ))}
         </View>
       </ScrollView>

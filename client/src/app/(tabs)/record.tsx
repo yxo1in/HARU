@@ -17,18 +17,13 @@ import { ScreenHeader } from "@/components/screen-header";
 import { SectionHeader } from "@/components/section-header";
 import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
-import { getToken, removeToken } from "@/lib/token";
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-type Category = "intro" | "motivation" | "personality" | "technical";
-
-const CATEGORY_LABELS: Record<Category, string> = {
-  intro: "자기소개",
-  motivation: "지원동기",
-  personality: "인성",
-  technical: "기술",
-};
+import { getJson } from "@/lib/api";
+import {
+  formatDate,
+  recordMeta,
+  type Category,
+  type RecordPage,
+} from "@/lib/records";
 
 const CHIPS: { label: string; category: Category | null }[] = [
   { label: "전체", category: null },
@@ -46,18 +41,6 @@ type Summary = {
 
 type ScorePoint = { answerId: number; answerDate: string; score: number };
 
-type RecordListItem = {
-  id: number;
-  answerDate: string;
-  category: Category;
-  question: string;
-  score: number | null;
-  feedbackStatus: "pending" | "done" | "failed";
-  retryCount: number;
-};
-
-type RecordPage = { items: RecordListItem[]; nextCursor: number | null };
-
 const GRID_LINES = [
   { y: 135, label: "60" },
   { y: 82, label: "80" },
@@ -68,30 +51,6 @@ const CHART = { left: 49.76, right: 312.31 };
 // 격자 기준 60점이 y=135, 80점이 y=82 → 1점당 2.65px.
 // 60점 아래는 날짜 라벨과 겹치지 않게 y=160 에서 멈춤 (약 51점 이하는 같은 높이)
 const scoreToY = (score: number) => Math.min(160, 135 - (score - 60) * 2.65);
-
-const pad = (n: number) => String(n).padStart(2, "0");
-
-function formatDate(date: string) {
-  const now = new Date();
-  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-  if (date === today) return "오늘";
-  const [, month, day] = date.split("-");
-  return `${Number(month)}월 ${Number(day)}일`;
-}
-
-async function getJson<T>(path: string): Promise<T | null> {
-  const token = await getToken();
-  const res = await fetch(`${API_URL}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (res.status === 401) {
-    await removeToken();
-    router.replace("/");
-    return null;
-  }
-  if (!res.ok) throw new Error(`${path} status ${res.status}`);
-  return res.json();
-}
 
 function EmptyRecord() {
   const styles = useThemedStyles(createStyles);
@@ -301,7 +260,7 @@ export default function Record() {
           {page.items.map((item) => (
             <RecordItem
               key={item.id}
-              meta={`${CATEGORY_LABELS[item.category]}, ${formatDate(item.answerDate)}`}
+              meta={recordMeta(item)}
               question={item.question}
               score={item.score}
               onPress={() =>
