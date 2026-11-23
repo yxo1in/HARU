@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/button";
-import { ChartFrame, ChartLabel, ChartPoint } from "@/components/chart-frame";
+import { ChartFrame, ChartLabel, ChartLine, ChartPoint } from "@/components/chart-frame";
 import { JobPill, StreakPill } from "@/components/header-pill";
 import { QuestItem } from "@/components/quest-item";
 import { ScreenHeader } from "@/components/screen-header";
@@ -41,14 +41,21 @@ function buildQuests(quests: Quests) {
   ] as const;
 }
 
-// API 연동 전까지 쓰는 Figma 예시 데이터
-const POINTS = [
-  [20, 62],
-  [72.81, 50],
-  [125.61, 56],
-  [178.42, 38],
-  [231.22, 44],
-];
+const CHART = { left: 23.64, right: 287.67, top: 30, bottom: 66 };
+function toChartPoints(scores: number[]): [number, number][] {
+  const min = Math.min(...scores);
+  const max = Math.max(...scores);
+  const step = scores.length > 1 ? (CHART.right - CHART.left) / (scores.length - 1) : 0;
+
+  return scores.map((score, i) => {
+    const x = scores.length > 1 ? CHART.left + i * step : CHART.right;
+    const y =
+      max === min
+        ? (CHART.top + CHART.bottom) / 2
+        : CHART.bottom - ((score - min) / (max - min)) * (CHART.bottom - CHART.top);
+    return [x, y];
+  });
+}
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -105,6 +112,10 @@ export default function Home() {
   const DAYS = last7Days
   const quests = buildQuests(home.quests);
   const doneCount = quests.filter((quest) => quest.current >= quest.total).length;
+  const { scores } = home;
+  const points = toChartPoints(scores);
+  const [latestX, latestY] = points[points.length - 1] ?? [0, 0];
+  const [firstX, firstY] = points[0] ?? [0, 0];
   return (
     <View style={styles.container}>
       <ScreenHeader>
@@ -142,18 +153,39 @@ export default function Home() {
             trailing="기록 보기"
             onPressTrailing={() => router.navigate("/record")}
           />
-          <ChartFrame height={125}>
-            <Image source={assets.chartHomeBaseline} style={styles.baseline} />
-            <Image source={assets.chartHomeLine} style={styles.line} />
-            {POINTS.map(([x, y]) => (
-              <ChartPoint key={x} x={x} y={y} />
-            ))}
-            <ChartPoint x={282.21} y={24} latest />
-            <ChartLabel x={298.6} y={20} text="86점" highlight />
-            <ChartLabel x={21.82} y={42} text="62점" />
-            <ChartLabel x={23.64} y={89} text="6회 전" />
-            <ChartLabel x={277.2} y={89} text="최근" />
-          </ChartFrame>
+          {scores.length === 0 ? (
+            <View style={styles.chartEmpty}>
+              <Image source={assets.haruEmpty} style={styles.chartEmptyHaru} />
+              <Text style={styles.chartEmptyText}>
+                {"첫 답변을 남기면\n점수 흐름이 여기 쌓여요"}
+              </Text>
+            </View>
+          ) : (
+            <ChartFrame height={125}>
+              <Image source={assets.chartHomeBaseline} style={styles.baseline} />
+              {points.slice(1).map((point, i) => (
+                <ChartLine key={i} from={points[i]} to={point} />
+              ))}
+              {/* ChartPoint 는 왼쪽 위 기준이라 점 크기의 절반(8→4, 12→6)만큼 당김 */}
+              {points.slice(0, -1).map(([x, y], i) => (
+                <ChartPoint key={i} x={x - 4} y={y - 4} />
+              ))}
+              <ChartPoint x={latestX - 6} y={latestY - 6} latest />
+              <ChartLabel
+                x={latestX + 10.4}
+                y={latestY - 10}
+                text={`${scores[scores.length - 1]}점`}
+                highlight
+              />
+              {scores.length > 1 && (
+                <>
+                  <ChartLabel x={firstX - 2.2} y={Math.max(0, firstY - 24)} text={`${scores[0]}점`} />
+                  <ChartLabel x={23.64} y={89} text={`${scores.length}회 전`} />
+                </>
+              )}
+              <ChartLabel x={277.2} y={89} text="최근" />
+            </ChartFrame>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -222,22 +254,24 @@ const createStyles = (colors: ThemeColors) =>
       width: 264.03,
       height: 1,
     },
-    line: {
-      position: "absolute",
-      left: 22.14,
-      top: 28.5,
-      width: 267.031,
-      height: 39.0007,
+    chartEmpty: {
+      height: 125,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.md,
+      borderRadius: radius.lg,
+      backgroundColor: colors.bgPrimary,
+    },
+    chartEmptyHaru: {
+      width: 72,
+      height: 72,
+    },
+    chartEmptyText: {
+      ...typography.bodyMedium,
+      color: colors.textTertiary,
     },
     goalsHeader: {
       paddingBottom: spacing.xs,
     },
   });
-
-// ===================================================================
-// TODO: 홈 화면 API 연동 (번호 순서대로)
-// ===================================================================
-// TODO(12): 점수 흐름 — scores 로 점 좌표 계산 + 선은 react-native-svg 로 직접 그리기
-//           (지금 chartHomeLine 은 고정 이미지라 점수가 바뀌어도 모양 그대로)
-//           라벨: 첫 점수 / 최신 점수, "N회 전" / "최근"
-// TODO(13): scores 가 비어 있으면 빈 상태 (haru-empty 이미지)
