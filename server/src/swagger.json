@@ -219,8 +219,13 @@
                     "scores": {
                       "type": "array",
                       "description": "정식 답변 + 피드백 완료 점수 최근 6개, 오래된 순",
-                      "items": { "type": "integer" },
-                      "example": [75, 62, 68, 70, 78, 85]
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "date": { "type": "string", "format": "date", "example": "2026-11-15" },
+                          "score": { "type": "integer", "example": 68 }
+                        }
+                      }
                     },
                     "quests": {
                       "type": "object",

@@ -53,7 +53,7 @@ router.get("/", async (req, res) => {
   }
 
   const [scoreRows] = await pool.query(
-    `SELECT f.score FROM answers a
+    `SELECT a.answer_date AS date, f.score FROM answers a
       JOIN feedbacks f ON a.id = f.answer_id
       WHERE a.user_id = ? AND a.retry_of_answer_id IS NULL AND a.feedback_status = 'done'
       ORDER BY a.answer_date DESC
@@ -61,7 +61,8 @@ router.get("/", async (req, res) => {
     [req.userId],
   );
 
-  const scores = scoreRows.map((row) => row.score).reverse();
+  // [{ date: "2026-11-15", score: 68 }, ...] 오래된 → 최신 (차트 아래 날짜 표시용으로 날짜도 같이)
+  const scores = scoreRows.reverse();
 
   const weekday = new Date(`${today}T00:00:00Z`).getUTCDay();
   const monday = addDays(today, -((weekday + 6) % 7));

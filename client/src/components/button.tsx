@@ -1,10 +1,11 @@
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
-import { radius, spacing, typography, type ThemeColors } from "@/constants/theme";
+import { fonts, radius, spacing, type ThemeColors } from "@/constants/theme";
 import { useThemedStyles } from "@/components/theme-provider";
 
+// v4 버튼: primary(검정 채움) / secondary(테두리) / ghost(글자만) / danger(빨간 테두리)
 type ButtonProps = {
   label: string;
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "lg" | "sm";
   disabled?: boolean;
   onPress?: () => void;
@@ -22,7 +23,14 @@ export function Button({
   const styles = useThemedStyles(createStyles);
   return (
     <Pressable
-      style={[styles.base, styles[size], styles[variant], disabled && styles.disabled, style]}
+      style={({ pressed }) => [
+        styles.base,
+        styles[size],
+        styles[variant],
+        pressed && styles.pressed,
+        disabled && styles.disabled,
+        style,
+      ]}
       accessibilityRole="button"
       disabled={disabled}
       onPress={onPress}
@@ -30,10 +38,12 @@ export function Button({
       <Text
         numberOfLines={1}
         style={[
-          size === "lg" ? styles.labelLg : styles.labelSm,
+          styles.label,
+          size === "sm" && styles.labelSm,
           variant === "primary" && styles.labelPrimary,
           variant === "secondary" && styles.labelSecondary,
           variant === "ghost" && styles.labelGhost,
+          variant === "danger" && styles.labelDanger,
         ]}
       >
         {label}
@@ -49,40 +59,52 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: radius.md,
   },
   lg: {
-    height: 56,
-    paddingHorizontal: spacing["2xl"],
+    height: 54,
+    paddingHorizontal: spacing.xl,
   },
   sm: {
-    height: 48,
+    height: 44,
     minWidth: 120,
     alignSelf: "center",
     paddingHorizontal: spacing.xl,
   },
   primary: {
-    backgroundColor: colors.actionDefault,
+    backgroundColor: colors.buttonBg,
   },
   secondary: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.bgPrimary,
+    borderWidth: 1.5,
+    borderColor: colors.text,
+    backgroundColor: colors.surface,
   },
   ghost: {},
+  danger: {
+    borderWidth: 1.5,
+    borderColor: colors.danger,
+    backgroundColor: colors.surface,
+  },
+  pressed: {
+    opacity: 0.8,
+  },
   disabled: {
     opacity: 0.4,
   },
-  labelLg: {
-    ...typography.labelLarge,
+  label: {
+    fontFamily: fonts.semibold,
+    fontSize: 16,
   },
   labelSm: {
-    ...typography.labelMedium,
+    fontSize: 14,
   },
   labelPrimary: {
-    color: colors.textOnAccent,
+    color: colors.buttonText,
   },
   labelSecondary: {
-    color: colors.textPrimary,
+    color: colors.text,
   },
   labelGhost: {
-    color: colors.textBrand,
+    color: colors.textSub,
+  },
+  labelDanger: {
+    color: colors.danger,
   },
 });
