@@ -53,6 +53,8 @@ export const darkColors = {
   danger: "#ff6b5b",
   chartBase: "#48484a", // 차트 바닥선
   chartDot: "#000000", // 차트 점 속
+  chartBand: "rgba(255,216,77,0.3)", // 기록 차트 80점 띠
+  onAccent: "#000000", // 강조색 위 글자 (기록 줄 일력의 "11월")
 
   // v3 이름
   bgPrimary: "#1c1c1e",
@@ -107,6 +109,8 @@ export const lightColors: ThemeColors = {
   danger: "#f23c1f",
   chartBase: "#c9cac5",
   chartDot: "#f0f0ec",
+  chartBand: "rgba(255,227,71,0.55)",
+  onAccent: "#ffffff",
 
   // v3 이름
   bgPrimary: "#ffffff",

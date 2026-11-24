@@ -167,7 +167,8 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="haru">
+      <ScreenHeader>
+        <Text style={styles.logo}>haru</Text>
         <Pressable style={styles.role} onPress={() => router.navigate("/profile")}>
           <Text style={styles.roleText}>{jobRoleName ?? "직무 선택"}</Text>
           <Image source={assets.v4ChevronDown} style={styles.roleIcon} />
@@ -296,6 +297,12 @@ const createStyles = (colors: ThemeColors) =>
     container: {
       flex: 1,
       backgroundColor: colors.bg,
+    },
+    logo: {
+      fontFamily: fonts.bold,
+      fontSize: 22,
+      letterSpacing: -0.22,
+      color: colors.text,
     },
     role: {
       flexDirection: "row",

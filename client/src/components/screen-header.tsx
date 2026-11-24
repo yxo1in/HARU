@@ -42,8 +42,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   title: {
     fontFamily: fonts.bold,
-    fontSize: 22,
-    letterSpacing: -0.22,
+    fontSize: 24,
+    letterSpacing: -0.48,
     color: colors.text,
   },
 });
