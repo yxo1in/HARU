@@ -9,7 +9,7 @@ const TABS = [
   {
     name: "home",
     href: "/home",
-    label: "홈",
+    label: "오늘",
     icon: "tabHome",
     activeIcon: "tabHomeActive",
   },
@@ -30,7 +30,7 @@ const TABS = [
   {
     name: "profile",
     href: "/profile",
-    label: "프로필",
+    label: "내 정보",
     icon: "tabProfile",
     activeIcon: "tabProfileActive",
   },
@@ -44,7 +44,7 @@ export default function TabsLayout() {
   return (
     <Tabs style={styles.root}>
       <TabSlot style={styles.slot} />
-      <TabList style={[styles.tabList, { paddingBottom: insets.bottom + spacing.sm }]}>
+      <TabList style={[styles.tabList, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
         {TABS.map(({ name, href, label, icon, activeIcon }) => (
           <TabTrigger key={name} name={name} href={href} asChild>
             <TabButton label={label} icon={assets[icon]} activeIcon={assets[activeIcon]} />
@@ -58,7 +58,7 @@ export default function TabsLayout() {
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: colors.bg,
   },
   // TabSlot 기본값이 flexShrink: 0이라 긴 화면이 탭 바를 밀어내지 않게 높이를 제한함
   slot: {
@@ -67,10 +67,11 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     flexBasis: 0,
   },
   tabList: {
-    paddingTop: spacing.sm,
-    paddingHorizontal: spacing.xl,
+    // v4 탭 바: 위쪽 선 + 9px 여백, 좌우 12px, 버튼 4개가 같은 폭
+    paddingTop: 9,
+    paddingHorizontal: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.borderDefault,
-    backgroundColor: colors.bgPrimary,
+    borderTopColor: colors.line,
+    backgroundColor: colors.surface,
   },
 });

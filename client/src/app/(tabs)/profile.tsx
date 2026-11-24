@@ -8,22 +8,17 @@ import {
   StyleSheet,
   Text,
   View,
-  Platform,
 } from "react-native";
 import {
   JobSheet,
   NicknameSheet,
   PasswordSheet,
 } from "@/components/profile-sheets";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ScreenHeader } from "@/components/screen-header";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
 import { ThemeSheet } from "@/components/theme-sheet";
-import {
-  radius,
-  spacing,
-  typography,
-  type ThemeColors,
-} from "@/constants/theme";
+import { fonts, radius, spacing, type ThemeColors } from "@/constants/theme";
 import { getToken, removeToken } from "@/lib/token";
 import { JOB_ROLE_NAMES, JOBS } from "@/constants/jobs";
 
@@ -47,7 +42,7 @@ function ListRow({ label, value, chevron, danger, onPress }: ListRowProps) {
       <View style={styles.rowRight}>
         {value ? <Text style={styles.rowValue}>{value}</Text> : null}
         {chevron ? (
-          <Image source={assets.chevron} style={styles.chevron} />
+          <Image source={assets.v4ChevronRight} style={styles.chevron} />
         ) : null}
       </View>
     </Pressable>
@@ -60,16 +55,19 @@ type OpenSheet = "job" | "nickname" | "password" | "theme" | null;
 
 export default function Profile() {
   const styles = useThemedStyles(createStyles);
-  const { assets, preference } = useTheme();
+  const { preference } = useTheme();
   type profileData = {
     nickname: string;
     jobRoleId: number | null;
     jobRoleName: string | null;
     email: string | null;
+    loginId: string | null;
+    answerCount: number;
   };
   const [profile, setProfile] = useState<profileData | null>(null);
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
   const [notice, setNotice] = useState("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const closeSheet = () => setOpenSheet(null);
 
   // 안내 문구는 3초 뒤에 사라짐
@@ -170,6 +168,36 @@ export default function Profile() {
     }
   };
 
+  const updateNickname = async (newNickname: string) => {
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/profile/updateNickname`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ newNickname }),
+      });
+      if (res.status === 401) {
+        await removeToken();
+        router.replace("/");
+        return null;
+      }
+      if (!res.ok) {
+        const data = await res.json();
+        return data.error ?? "닉네임을 바꾸지 못했어요.";
+      }
+      setProfile((prev) => (prev ? { ...prev, nickname: newNickname } : prev));
+      closeSheet();
+      setNotice("닉네임을 변경했어요.");
+      return null;
+    } catch (err) {
+      console.log(err);
+      return "서버에 연결할 수 없어요.";
+    }
+  };
+
   const deleteUser = async () => {
     try {
       const token = await getToken();
@@ -188,22 +216,7 @@ export default function Profile() {
     }
   };
 
-  const confirmDeleteUser = () => {
-    const message =
-      "탈퇴하면 계정과 기록이 모두 삭제되고 되돌릴 수 없어요. 정말 탈퇴할까요?";
-
-    if (Platform.OS === "web") {
-      if (window.confirm(message)) {
-        deleteUser();
-      }
-      return;
-    }
-
-    Alert.alert("회원 탈퇴", message, [
-      { text: "취소", style: "cancel" },
-      { text: "탈퇴", style: "destructive", onPress: deleteUser },
-    ]);
-  };
+  const confirmDeleteUser = () => setConfirmingDelete(true);
 
   const logout = async () => {
     await removeToken();
@@ -213,39 +226,41 @@ export default function Profile() {
   if (!profile) {
     return null;
   }
-  const { nickname, jobRoleName, email } = profile;
+  const { nickname, jobRoleName, email, loginId, answerCount } = profile;
   const job = Object.keys(JOB_ROLE_NAMES).find(
     (key) => JOB_ROLE_NAMES[key] === jobRoleName,
   );
+  // 아이디 가입이면 아이디, 구글 가입이면 이메일
+  const joinedWith = loginId ? `아이디 ${loginId}로 가입` : email;
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="프로필" />
+      <ScreenHeader title="내 정보" />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.body}>
         <View style={styles.profile}>
           <View style={styles.avatar}>
-            <Image source={assets.haruProfile} style={styles.haru} />
+            <Text style={styles.avatarText}>{nickname.slice(0, 1)}</Text>
           </View>
           <View style={styles.who}>
             <Text style={styles.name}>{nickname}</Text>
-            {email ? <Text style={styles.email}>{email}</Text> : null}
+            {joinedWith ? <Text style={styles.email}>{joinedWith}</Text> : null}
           </View>
         </View>
 
         <View style={styles.card}>
           <ListRow
-            label="희망 직무"
-            value={job}
-            chevron
-            onPress={() => setOpenSheet("job")}
-          />
-          <View style={styles.divider} />
-          <ListRow
             label="닉네임"
             value={nickname}
             chevron
             onPress={() => setOpenSheet("nickname")}
+          />
+          <View style={styles.divider} />
+          <ListRow
+            label="희망 직무"
+            value={jobRoleName ?? "선택 안 함"}
+            chevron
+            onPress={() => setOpenSheet("job")}
           />
           <View style={styles.divider} />
           <ListRow
@@ -263,7 +278,7 @@ export default function Profile() {
         </View>
 
         <View style={styles.card}>
-          <ListRow label="로그아웃" onPress={logout} />
+          <ListRow label="로그아웃" chevron onPress={logout} />
           <View style={styles.divider} />
           <ListRow label="회원 탈퇴" danger onPress={confirmDeleteUser} />
         </View>
@@ -285,7 +300,7 @@ export default function Profile() {
       {openSheet === "nickname" ? (
         <NicknameSheet
           initialValue={nickname}
-          onSave={() => {}}
+          onSave={updateNickname}
           onClose={closeSheet}
         />
       ) : null}
@@ -293,6 +308,18 @@ export default function Profile() {
         <PasswordSheet onSave={handleUpdatePassword} onClose={closeSheet} />
       ) : null}
       {openSheet === "theme" ? <ThemeSheet onClose={closeSheet} /> : null}
+      {confirmingDelete ? (
+        <ConfirmDialog
+          title="정말 탈퇴할까요?"
+          message={`답변 ${answerCount}개와 첨삭, 나만의 질문이 모두 지워져요. 지운 기록은 되돌릴 수 없어요.`}
+          confirmLabel="탈퇴하기"
+          onCancel={() => setConfirmingDelete(false)}
+          onConfirm={() => {
+            setConfirmingDelete(false);
+            deleteUser();
+          }}
+        />
+      ) : null}
     </View>
   );
 }
@@ -301,44 +328,51 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.bgSecondary,
+      backgroundColor: colors.bg,
     },
     scroll: {
       flex: 1,
     },
     body: {
-      gap: spacing["2xl"],
-      paddingTop: spacing.lg,
+      gap: 20,
+      paddingTop: spacing.sm,
       paddingHorizontal: spacing.xl,
       paddingBottom: spacing["2xl"],
     },
     profile: {
       flexDirection: "row",
       alignItems: "center",
-      gap: spacing.lg,
+      gap: 14,
     },
+    // 닉네임 첫 글자를 넣은 동그라미
     avatar: {
-      width: 72,
-      height: 72,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.buttonBg,
     },
-    // Figma Haru 박스(120) 위치. 라이트 모드의 햇살까지 이 박스 안에 들어감
-    haru: {
-      position: "absolute",
-      left: -24,
-      top: -18,
-      width: 120,
-      height: 120,
+    avatarText: {
+      fontFamily: fonts.bold,
+      fontSize: 22,
+      letterSpacing: -0.22,
+      color: colors.buttonText,
     },
     who: {
+      flex: 1,
       gap: 2,
     },
     name: {
-      ...typography.h3,
-      color: colors.textPrimary,
+      fontFamily: fonts.bold,
+      fontSize: 20,
+      letterSpacing: -0.2,
+      color: colors.text,
     },
     email: {
-      ...typography.bodySmall,
-      color: colors.textTertiary,
+      fontFamily: fonts.regular,
+      fontSize: 14,
+      color: colors.textSub,
     },
     // 화면 하단에 떠 있는 안내 문구
     toast: {
@@ -349,51 +383,56 @@ const createStyles = (colors: ThemeColors) =>
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.lg,
       borderRadius: radius.md,
-      backgroundColor: colors.bgInverse,
+      backgroundColor: colors.buttonBg,
       alignItems: "center",
     },
     toastText: {
-      ...typography.bodySmall,
-      color: colors.textInverse,
+      fontFamily: fonts.medium,
+      fontSize: 14,
+      color: colors.buttonText,
     },
     card: {
-      overflow: "hidden",
+      paddingLeft: 18,
+      paddingRight: 14,
       borderWidth: 1,
-      borderColor: colors.borderDefault,
-      borderRadius: radius.lg,
-      backgroundColor: colors.bgPrimary,
+      borderColor: colors.lineSoft,
+      borderRadius: 14,
+      backgroundColor: colors.surface,
     },
     divider: {
       height: 1,
-      backgroundColor: colors.borderDefault,
+      backgroundColor: colors.line,
     },
     row: {
-      height: 56,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
-      paddingLeft: spacing.lg,
-      paddingRight: spacing.md,
+      gap: 6,
+      paddingVertical: 15,
     },
     rowLabel: {
-      ...typography.bodyMedium,
-      color: colors.textPrimary,
+      flex: 1,
+      fontFamily: fonts.regular,
+      fontSize: 16,
+      color: colors.text,
     },
     rowLabelDanger: {
-      ...typography.bodyMedium,
-      color: colors.textDanger,
+      flex: 1,
+      fontFamily: fonts.regular,
+      fontSize: 16,
+      color: colors.danger,
     },
     rowRight: {
       flexDirection: "row",
       alignItems: "center",
-      gap: spacing.xs,
+      gap: 6,
     },
     rowValue: {
-      ...typography.bodyMedium,
-      color: colors.textTertiary,
+      fontFamily: fonts.regular,
+      fontSize: 15,
+      color: colors.textSub,
     },
     chevron: {
-      width: 20,
-      height: 20,
+      width: 16,
+      height: 16,
     },
   });

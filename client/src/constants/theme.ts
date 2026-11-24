@@ -12,6 +12,7 @@ export const palette = {
   violet200: "#ffe68a",
 } as const;
 
+// 테마와 상관없는 고정 색 (v3 마스코트용. 마스코트를 쓰는 화면이 남아 있는 동안만 유지)
 export const colors = {
   textPrimary: "#141414",
   textInverse: "#ffffff",
@@ -29,70 +30,126 @@ export const colors = {
   },
 } as const;
 
+// ---------------------------------------------------------------------
+// v4 색 (Figma "Screens · v4")
+//  - 아래쪽 "v3 이름" 은 아직 v4 로 안 바꾼 화면이 깨지지 않게 v4 색에 연결해 둔 것
+// ---------------------------------------------------------------------
 export const darkColors = {
-  bgPrimary: "#1b1d38",
-  bgSecondary: "#0f1022",
-  bgHeader: "#1b1d38",
-  textPrimary: "#f2f1fa",
-  textTertiary: "#8e8da8",
-  textBrand: "#ffd15c",
-  borderDefault: "#30335a",
-  borderStrong: "#41456e",
-  borderFocus: "#ffe07f",
-  bgTertiary: "#24274a",
-  bgBrandSubtle: "#2b2a47",
-  textSecondary: "#bdbcd3",
-  textAccent: "#ffe07f",
-  textDanger: "#ffafa6",
-  textOnAccent: "#0f1022",
-  accentStrong: "#ffd15c",
+  // v4
+  bg: "#000000", // 화면 바탕
+  surface: "#1c1c1e", // 카드, 날짜 칸, 탭 바
+  surfaceMuted: "rgba(28,28,30,0.5)", // 답변 안 한 날 같은 흐린 칸
+  text: "#f5f5f2",
+  textSub: "#a0a3a8",
+  textFaint: "#6b6e73",
+  line: "#3a3a3c", // 구분선, 탭 바 위 선, 페이지 가장자리
+  lineSoft: "transparent", // 라이트에서만 보이는 얇은 테두리
+  accent: "#ffd84d", // 연속 기록, 최신 점수, 선택된 탭
+  highlight: "#ffd84d", // 오늘 칸, 재답변 뱃지
+  highlighter: "transparent", // 큰 날짜 뒤 형광펜 (라이트에서만)
+  onHighlight: "#000000",
+  buttonBg: "#f5f5f2",
+  buttonText: "#000000",
+  danger: "#ff6b5b",
+  chartBase: "#48484a", // 차트 바닥선
+  chartDot: "#000000", // 차트 점 속
+  chartBand: "rgba(255,216,77,0.3)", // 기록 차트 80점 띠
+  onAccent: "#000000", // 강조색 위 글자 (기록 줄 일력의 "11월")
+  accentSoft: "#3a3214", // 점수 동그라미 바탕
+  skeleton: "#000000", // 불러오는 중 회색 막대
+  ink: "#8fa8ff", // 답변 쓰기 파란 글씨
+  rule: "#2c2c2e", // 답변 쓰기 공책 줄
+
+  // v3 이름
+  bgPrimary: "#1c1c1e",
+  bgSecondary: "#000000",
+  bgHeader: "#000000",
+  textPrimary: "#f5f5f2",
+  textTertiary: "#a0a3a8",
+  textBrand: "#ffd84d",
+  borderDefault: "#3a3a3c",
+  borderStrong: "#3a3a3c",
+  borderFocus: "#f5f5f2",
+  bgTertiary: "#1c1c1e",
+  bgBrandSubtle: "rgba(28,28,30,0.5)",
+  textSecondary: "#a0a3a8",
+  textAccent: "#ffd84d",
+  textDanger: "#ff6b5b",
+  textOnAccent: "#000000",
+  accentStrong: "#ffd84d",
   mascotFace: "#141414",
   mascotTop: "#fffbea",
   mascotMid: "#fff0bf",
   mascotBottom: "#f3d98a",
-  bgSky: "#24274a",
-  bgInverse: "#fff6d9",
-  textInverse: "#0f1022",
+  bgSky: "#1c1c1e",
+  bgInverse: "#f5f5f2",
+  textInverse: "#000000",
   textSuccess: "#6debb8",
   bgSuccessSubtle: "#12302a",
-  textWarning: "#ffe280",
-  focusRing: "rgba(255,224,127,0.18)",
-  scrim: "rgba(15,16,34,0.5)",
-  actionDefault: "#ffd15c",
+  textWarning: "#ffd84d",
+  focusRing: "rgba(245,245,242,0.18)",
+  scrim: "rgba(0,0,0,0.6)",
+  actionDefault: "#f5f5f2",
 } as const;
 
 export type ThemeColors = { [K in keyof typeof darkColors]: string };
 
 export const lightColors: ThemeColors = {
+  // v4
+  bg: "#ffffff",
+  surface: "#ffffff",
+  surfaceMuted: "#f4f4f1",
+  text: "#000000",
+  textSub: "#63666b",
+  textFaint: "#9c9fa3",
+  line: "#d9dad5",
+  lineSoft: "#e6e6e1",
+  accent: "#f23c1f",
+  highlight: "#ffe347",
+  highlighter: "#ffe347",
+  onHighlight: "#000000",
+  buttonBg: "#000000",
+  buttonText: "#ffffff",
+  danger: "#f23c1f",
+  chartBase: "#c9cac5",
+  chartDot: "#f0f0ec",
+  chartBand: "rgba(255,227,71,0.55)",
+  onAccent: "#ffffff",
+  accentSoft: "#fde8e4",
+  skeleton: "#f0f0ec",
+  ink: "#1e40c8",
+  rule: "#e4e5e0",
+
+  // v3 이름
   bgPrimary: "#ffffff",
-  bgSecondary: "#f4f9ff",
+  bgSecondary: "#ffffff",
   bgHeader: "#ffffff",
-  textPrimary: "#141414",
-  textTertiary: "#6e6963",
-  textBrand: "#946200",
-  borderDefault: "#dce4ee",
-  borderStrong: "#c5d0dd",
-  borderFocus: "#b88200",
-  bgTertiary: "#eaf0f7",
-  bgBrandSubtle: "#fffbea",
-  textSecondary: "#55514c",
-  textAccent: "#946200",
-  textDanger: "#d43a2c",
-  textOnAccent: "#141414",
-  accentStrong: "#f0ac00",
+  textPrimary: "#000000",
+  textTertiary: "#63666b",
+  textBrand: "#f23c1f",
+  borderDefault: "#d9dad5",
+  borderStrong: "#d9dad5",
+  borderFocus: "#000000",
+  bgTertiary: "#f4f4f1",
+  bgBrandSubtle: "#f4f4f1",
+  textSecondary: "#63666b",
+  textAccent: "#f23c1f",
+  textDanger: "#f23c1f",
+  textOnAccent: "#ffffff",
+  accentStrong: "#f23c1f",
   mascotFace: "#141414",
   mascotTop: "#fff4b8",
   mascotMid: "#ffdb4d",
   mascotBottom: "#ffbe1a",
-  bgSky: "#e3f0ff",
-  bgInverse: "#141414",
+  bgSky: "#f4f4f1",
+  bgInverse: "#000000",
   textInverse: "#ffffff",
   textSuccess: "#118059",
   bgSuccessSubtle: "#eafff6",
   textWarning: "#8a5a00",
-  focusRing: "#ffe68a99",
-  scrim: "rgba(15,16,34,0.5)",
-  actionDefault: "#ffc000",
+  focusRing: "rgba(0,0,0,0.08)",
+  scrim: "rgba(0,0,0,0.4)",
+  actionDefault: "#000000",
 };
 
 export const spacing = {
@@ -106,98 +163,38 @@ export const spacing = {
 
 export const radius = {
   none: 0,
+  sm: 6,
   md: 12,
   lg: 20,
   full: 9999,
 } as const;
 
-export const fontFamily = {
-  base: "Pretendard",
+// 커스텀 폰트는 굵기마다 파일이 따로라 fontWeight 대신 fontFamily 로 굵기를 고름
+// (이름은 app/_layout.tsx 에서 useFonts 로 불러온 키와 같아야 함)
+export const fonts = {
+  regular: "IBMPlexSansKR_400Regular",
+  medium: "IBMPlexSansKR_500Medium",
+  semibold: "IBMPlexSansKR_600SemiBold",
+  bold: "IBMPlexSansKR_700Bold",
+  pen: "NanumPenScript_400Regular", // 손글씨 점수, 연속 기록
 } as const;
 
+export const fontFamily = {
+  base: fonts.regular,
+} as const;
+
+// v3 이름의 글자 스타일. 굵기에 맞는 폰트 파일로 연결해 둠
 export const typography = {
-  display: {
-    fontFamily: fontFamily.base,
-    fontSize: 40,
-    fontWeight: "900",
-    lineHeight: 50,
-    letterSpacing: -1.2, // Figma -3% × 40
-  },
-  h2: {
-    fontFamily: fontFamily.base,
-    fontSize: 30,
-    fontWeight: "700",
-    lineHeight: 38,
-    letterSpacing: 0,
-  },
-  h3: {
-    fontFamily: fontFamily.base,
-    fontSize: 24,
-    fontWeight: "700",
-    lineHeight: 32,
-    letterSpacing: 0,
-  },
-  h4: {
-    fontFamily: fontFamily.base,
-    fontSize: 20,
-    fontWeight: "700",
-    lineHeight: 28,
-    letterSpacing: 0,
-  },
-  bodyMedium: {
-    fontFamily: fontFamily.base,
-    fontSize: 16,
-    fontWeight: "400",
-    lineHeight: 24,
-    letterSpacing: 0,
-  },
-  score: {
-    fontFamily: fontFamily.base,
-    fontSize: 56,
-    fontWeight: "400",
-    lineHeight: 64,
-    letterSpacing: -1.68,
-  },
-  bodyLarge: {
-    fontFamily: fontFamily.base,
-    fontSize: 18,
-    fontWeight: "400",
-    lineHeight: 28,
-    letterSpacing: 0,
-  },
-  bodySmall: {
-    fontFamily: fontFamily.base,
-    fontSize: 14,
-    fontWeight: "400",
-    lineHeight: 20,
-    letterSpacing: 0,
-  },
-  caption: {
-    fontFamily: fontFamily.base,
-    fontSize: 12,
-    fontWeight: "400",
-    lineHeight: 16,
-    letterSpacing: 0,
-  },
-  labelLarge: {
-    fontFamily: fontFamily.base,
-    fontSize: 16,
-    fontWeight: "500",
-    lineHeight: 24,
-    letterSpacing: 0,
-  },
-  labelSmall: {
-    fontFamily: fontFamily.base,
-    fontSize: 12,
-    fontWeight: "500",
-    lineHeight: 16,
-    letterSpacing: 0,
-  },
-  labelMedium: {
-    fontFamily: fontFamily.base,
-    fontSize: 14,
-    fontWeight: "500",
-    lineHeight: 20,
-    letterSpacing: 0,
-  },
+  display: { fontFamily: fonts.bold, fontSize: 40, lineHeight: 50, letterSpacing: -1.2 },
+  h2: { fontFamily: fonts.bold, fontSize: 30, lineHeight: 38, letterSpacing: 0 },
+  h3: { fontFamily: fonts.bold, fontSize: 24, lineHeight: 32, letterSpacing: 0 },
+  h4: { fontFamily: fonts.bold, fontSize: 20, lineHeight: 28, letterSpacing: 0 },
+  bodyLarge: { fontFamily: fonts.regular, fontSize: 18, lineHeight: 28, letterSpacing: 0 },
+  bodyMedium: { fontFamily: fonts.regular, fontSize: 16, lineHeight: 24, letterSpacing: 0 },
+  bodySmall: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, letterSpacing: 0 },
+  caption: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 16, letterSpacing: 0 },
+  labelLarge: { fontFamily: fonts.medium, fontSize: 16, lineHeight: 24, letterSpacing: 0 },
+  labelMedium: { fontFamily: fonts.medium, fontSize: 14, lineHeight: 20, letterSpacing: 0 },
+  labelSmall: { fontFamily: fonts.medium, fontSize: 12, lineHeight: 16, letterSpacing: 0 },
+  score: { fontFamily: fonts.pen, fontSize: 56, lineHeight: 56, letterSpacing: 0 },
 } as const;

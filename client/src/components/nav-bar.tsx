@@ -1,12 +1,14 @@
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { fonts, spacing, type ThemeColors } from "@/constants/theme";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
-const NAV_HEIGHT = 56;
+// v4 위쪽 바: 왼쪽 뒤로(<) 또는 닫기(X), 가운데 작은 제목, 오른쪽 자리(선택)
+const NAV_HEIGHT = 48;
 
 function goBack() {
   if (router.canGoBack()) {
@@ -16,29 +18,35 @@ function goBack() {
   }
 }
 
-export function NavBar({ title }: { title?: string }) {
+type NavBarProps = {
+  title?: string;
+  icon?: "back" | "close" | "none"; // none: 아이콘 없이 제목만 (채점 중)
+  onPress?: () => void;
+  right?: ReactNode;
+};
+
+export function NavBar({ title, icon = "back", onPress = goBack, right }: NavBarProps) {
   const styles = useThemedStyles(createStyles);
   const { assets, scheme } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
-    <View
-      style={[styles.bar, { paddingTop: insets.top, height: NAV_HEIGHT + insets.top }]}
-    >
+    <View style={[styles.bar, { paddingTop: insets.top, height: NAV_HEIGHT + insets.top }]}>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
-      <Pressable
-        style={styles.side}
-        accessibilityRole="button"
-        accessibilityLabel="뒤로가기"
-        onPress={goBack}
-      >
-        <Image
-          source={assets.chevronLeft}
-          style={styles.icon}
-        />
-      </Pressable>
+      {icon === "none" ? (
+        <View style={styles.side} />
+      ) : (
+        <Pressable
+          style={styles.side}
+          accessibilityRole="button"
+          accessibilityLabel={icon === "close" ? "닫기" : "뒤로가기"}
+          onPress={onPress}
+        >
+          <Image source={icon === "close" ? assets.v4Close : assets.v4Back} style={styles.icon} />
+        </Pressable>
+      )}
       {title ? <Text style={styles.title}>{title}</Text> : null}
-      <View style={styles.side} />
+      <View style={[styles.side, styles.right]}>{right}</View>
     </View>
   );
 }
@@ -48,25 +56,27 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingLeft: 6,
-    paddingRight: spacing.xl,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderDefault,
-    backgroundColor: colors.bgHeader,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.bg,
   },
   side: {
-    width: 44,
+    minWidth: 44,
     height: 44,
-    alignItems: "flex-start",
     justifyContent: "center",
     paddingLeft: 10,
+  },
+  right: {
+    alignItems: "flex-end",
+    paddingLeft: 0,
+    paddingRight: spacing.lg,
   },
   icon: {
     width: 24,
     height: 24,
   },
   title: {
-    ...typography.labelLarge,
-    color: colors.textPrimary,
+    fontFamily: fonts.semibold,
+    fontSize: 16,
+    color: colors.text,
   },
 });

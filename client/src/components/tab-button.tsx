@@ -1,7 +1,7 @@
 import { Image, type ImageSource } from "expo-image";
 import type { TabTriggerSlotProps } from "expo-router/ui";
 import { Pressable, StyleSheet, Text } from "react-native";
-import { typography, type ThemeColors } from "@/constants/theme";
+import { fonts, type ThemeColors } from "@/constants/theme";
 import { useThemedStyles } from "@/components/theme-provider";
 
 type TabButtonProps = TabTriggerSlotProps & {
@@ -33,23 +33,26 @@ export function TabButton({
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
+  // 탭 4개가 남는 폭을 똑같이 나눠 가짐
   tab: {
-    width: 64,
-    height: 48,
+    flex: 1,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 3,
   },
   icon: {
     width: 24,
     height: 24,
   },
   label: {
-    ...typography.caption,
-    color: colors.textTertiary,
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.textFaint,
   },
   labelActive: {
-    ...typography.labelSmall,
-    color: colors.textBrand,
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.accent,
   },
 });

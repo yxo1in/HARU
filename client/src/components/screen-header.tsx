@@ -2,10 +2,11 @@ import { StatusBar } from "expo-status-bar";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { fonts, spacing, type ThemeColors } from "@/constants/theme";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
 
-const HEADER_HEIGHT = 64;
+// v4 탭 화면 상단: 왼쪽 굵은 제목, 오른쪽에 children (직무 선택 등)
+const HEADER_HEIGHT = 56;
 
 type ScreenHeaderProps = {
   title?: string;
@@ -37,12 +38,12 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: spacing.xl,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderDefault,
-    backgroundColor: colors.bgHeader,
+    backgroundColor: colors.bg,
   },
   title: {
-    ...typography.h2,
-    color: colors.textPrimary,
+    fontFamily: fonts.bold,
+    fontSize: 24,
+    letterSpacing: -0.48,
+    color: colors.text,
   },
 });

@@ -51,6 +51,44 @@ export function ChartPoint({ x, y, latest }: ChartPointProps) {
   );
 }
 
+const LINE_WIDTH = 3;
+
+type ChartLineProps = {
+  from: [number, number];
+  to: [number, number];
+  // 안 주면 기존(기록 탭) 모양: 강조색 3px
+  color?: string;
+  width?: number;
+};
+
+// 두 점(중심 좌표)을 잇는 선분. 가운데에 놓고 기울기만큼 회전시켜 그림
+export function ChartLine({ from, to, color, width = LINE_WIDTH }: ChartLineProps) {
+  const styles = useThemedStyles(createStyles);
+  const [x1, y1] = from;
+  const [x2, y2] = to;
+  // 선 두께만큼 양 끝을 늘려서 이어지는 부분이 끊겨 보이지 않게 함
+  const length = Math.hypot(x2 - x1, y2 - y1) + width;
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+
+  return (
+    <View
+      style={[
+        styles.absolute,
+        styles.line,
+        {
+          left: (x1 + x2) / 2 - length / 2,
+          top: (y1 + y2) / 2 - width / 2,
+          width: length,
+          height: width,
+          borderRadius: width / 2,
+          ...(color ? { backgroundColor: color } : null),
+          transform: [{ rotate: `${angle}rad` }],
+        },
+      ]}
+    />
+  );
+}
+
 type ChartLabelProps = {
   x: number;
   y: number;
@@ -86,6 +124,11 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   absolute: {
     position: "absolute",
+  },
+  line: {
+    height: LINE_WIDTH,
+    borderRadius: LINE_WIDTH / 2,
+    backgroundColor: colors.accentStrong,
   },
   label: {
     ...typography.caption,

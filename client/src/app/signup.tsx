@@ -13,10 +13,12 @@ import { Chip } from "@/components/chip";
 import { NavBar } from "@/components/nav-bar";
 import { TextField } from "@/components/text-field";
 import { JOB_ROLE_NAMES, JOBS } from "@/constants/jobs";
-import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { fonts, spacing, type ThemeColors } from "@/constants/theme";
 import { useThemedStyles } from "@/components/theme-provider";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+type Field = "loginId" | "password" | "nickname";
 
 async function fetchJobRoleId(job: string) {
   const res = await fetch(`${API_URL}/api/job-roles`);
@@ -25,6 +27,14 @@ async function fetchJobRoleId(job: string) {
   }
   const { jobRoles }: { jobRoles: { id: number; name: string }[] } = await res.json();
   return jobRoles.find(({ name }) => name === JOB_ROLE_NAMES[job])?.id ?? null;
+}
+
+// 서버 오류 문구에 칸 이름이 들어 있으면 그 칸 아래에 빨갛게 보여줌
+function fieldOf(message: string): Field | null {
+  if (message.includes("아이디")) return "loginId";
+  if (message.includes("비밀번호")) return "password";
+  if (message.includes("닉네임")) return "nickname";
+  return null;
 }
 
 export default function SignUp() {
@@ -37,6 +47,7 @@ export default function SignUp() {
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const errorField = error ? fieldOf(error) : null;
 
   const handleSignUp = async () => {
     setError("");
@@ -69,6 +80,8 @@ export default function SignUp() {
     }
   };
 
+  const fieldState = (field: Field) => (errorField === field ? "error" : "default");
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <NavBar />
@@ -77,36 +90,46 @@ export default function SignUp() {
         contentContainerStyle={styles.body}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>몇 가지만 알려 주세요</Text>
+        <Text style={styles.title}>회원가입</Text>
         <View style={styles.form}>
           <TextField
             label="아이디"
-            placeholder="영문, 숫자 4~20자"
+            placeholder="영문 소문자, 숫자 4~20자"
             autoCapitalize="none"
             value={loginId}
             onChangeText={setLoginId}
+            state={fieldState("loginId")}
+            helper={errorField === "loginId" ? error : undefined}
           />
           <TextField
             label="비밀번호"
             placeholder="비밀번호 입력"
-            helper="8자 이상, 영문과 숫자를 섞어 주세요"
+            helper={
+              errorField === "password" ? error : "8~64자, 영문과 숫자를 하나 이상 넣어 주세요."
+            }
             secure
             value={password}
             onChangeText={setPassword}
+            state={fieldState("password")}
           />
           <TextField
             label="닉네임"
             placeholder="2~10자로 입력"
             value={nickname}
             onChangeText={setNickname}
+            state={fieldState("nickname")}
+            helper={errorField === "nickname" ? error : undefined}
           />
           <View style={styles.jobRole}>
-            <Text style={styles.jobLabel}>희망 직무 (선택)</Text>
+            <View style={styles.jobLabelRow}>
+              <Text style={styles.jobLabel}>희망 직무</Text>
+              <Text style={styles.jobOptional}>선택</Text>
+            </View>
             <View style={styles.chips}>
               {JOBS.map((item) => (
                 <Chip
                   key={item}
-                  label={item}
+                  label={JOB_ROLE_NAMES[item]}
                   selected={item === job}
                   onPress={() => setJob(item === job ? null : item)}
                 />
@@ -116,9 +139,10 @@ export default function SignUp() {
         </View>
       </ScrollView>
       <View
-        style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
+        style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}
       >
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {/* 칸과 상관없는 오류(서버 연결 등)만 버튼 위에 */}
+        {error && !errorField ? <Text style={styles.error}>{error}</Text> : null}
         <Button
           label="가입하기"
           onPress={handleSignUp}
@@ -137,29 +161,43 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.bgSecondary,
+      backgroundColor: colors.bg,
     },
     scroll: {
       flex: 1,
     },
     body: {
-      gap: spacing["2xl"],
-      paddingTop: spacing.xl,
+      gap: 6,
+      paddingTop: spacing.sm,
       paddingHorizontal: spacing.xl,
+      paddingBottom: spacing.xl,
     },
     title: {
-      ...typography.h3,
-      color: colors.textPrimary,
+      fontFamily: fonts.bold,
+      fontSize: 28,
+      letterSpacing: -0.56,
+      color: colors.text,
     },
     form: {
-      gap: spacing.xl,
+      gap: 14,
+      paddingTop: 18,
     },
     jobRole: {
-      gap: spacing.sm,
+      gap: 10,
+    },
+    jobLabelRow: {
+      flexDirection: "row",
+      gap: 6,
     },
     jobLabel: {
-      ...typography.labelMedium,
-      color: colors.textSecondary,
+      fontFamily: fonts.medium,
+      fontSize: 14,
+      color: colors.text,
+    },
+    jobOptional: {
+      fontFamily: fonts.regular,
+      fontSize: 14,
+      color: colors.textFaint,
     },
     chips: {
       flexDirection: "row",
@@ -168,19 +206,22 @@ const createStyles = (colors: ThemeColors) =>
     },
     footer: {
       alignItems: "center",
-      gap: spacing.md,
+      gap: 10,
       paddingTop: spacing.md,
       paddingHorizontal: spacing.xl,
+      backgroundColor: colors.bg,
     },
     submit: {
       alignSelf: "stretch",
     },
     terms: {
-      ...typography.caption,
-      color: colors.textTertiary,
+      fontFamily: fonts.regular,
+      fontSize: 12,
+      color: colors.textSub,
     },
     error: {
-      ...typography.caption,
-      color: colors.textDanger,
+      fontFamily: fonts.regular,
+      fontSize: 13,
+      color: colors.danger,
     },
   });

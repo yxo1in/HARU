@@ -39,13 +39,25 @@ export function JobSheet({ selected, onSelect, onClose }: JobSheetProps) {
 
 type NicknameSheetProps = {
   initialValue: string;
-  onSave: (nickname: string) => void;
+  // 실패하면 에러 문구, 성공하면 null을 돌려줌
+  onSave: (nickname: string) => Promise<string | null>;
   onClose: () => void;
 };
 
 export function NicknameSheet({ initialValue, onSave, onClose }: NicknameSheetProps) {
+  const { colors } = useTheme();
   const [nickname, setNickname] = useState(initialValue);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const trimmed = nickname.trim();
+
+  const handleSave = async () => {
+    setError("");
+    setSaving(true);
+    const message = await onSave(trimmed);
+    setSaving(false);
+    if (message) setError(message);
+  };
 
   return (
     <BottomSheet title="닉네임" onClose={onClose}>
@@ -57,13 +69,15 @@ export function NicknameSheet({ initialValue, onSave, onClose }: NicknameSheetPr
           onChangeText={setNickname}
           maxLength={NICKNAME_MAX_LENGTH}
         />
+        {error ? (
+          <Text style={[typography.caption, { color: colors.textDanger }]}>
+            {error}
+          </Text>
+        ) : null}
         <Button
           label="저장"
-          disabled={trimmed.length < NICKNAME_MIN_LENGTH}
-          onPress={() => {
-            onSave(trimmed);
-            onClose();
-          }}
+          disabled={trimmed.length < NICKNAME_MIN_LENGTH || saving}
+          onPress={handleSave}
         />
       </View>
     </BottomSheet>
