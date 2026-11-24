@@ -1,75 +1,140 @@
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Image } from "expo-image";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/button";
-import { Chip } from "@/components/chip";
-import { JobPill } from "@/components/header-pill";
-import { RecordItem } from "@/components/record-item";
+import { DailyPad } from "@/components/daily-pad";
+import { ScoreCircle } from "@/components/score-circle";
 import { ScreenHeader } from "@/components/screen-header";
-import { SectionHeader } from "@/components/section-header";
-import { spacing, typography, type ThemeColors } from "@/constants/theme";
-import { useThemedStyles } from "@/components/theme-provider";
+import { useTheme, useThemedStyles } from "@/components/theme-provider";
+import { fonts, spacing, type ThemeColors } from "@/constants/theme";
 import { getJson } from "@/lib/api";
-import { recordMeta, todayString, type RecordListItem, type RecordPage } from "@/lib/records";
+import {
+  CATEGORY_LABELS,
+  todayString,
+  type Category,
+  type RecordListItem,
+  type RecordPage,
+} from "@/lib/records";
 
-const PAST_COUNT = 3;
+// 하루에 같은 질문을 다시 답할 수 있는 횟수 (서버 README 의 RETRY_LIMIT 와 같음)
+const RETRY_LIMIT = 5;
 
-// API 연동 전까지 쓰는 Figma 예시 데이터
-const CATEGORIES = ["랜덤", "자기소개", "지원동기", "인성", "기술"];
+type Profile = { jobRoleName: string | null };
 
-const TODAY_RESULT = {
-  meta: "지원동기, 오늘",
-  question: "우리 회사에 지원한 이유는 무엇인가요?",
-  score: 82,
-};
+// "random" 은 서버에 category 를 안 보내서 네 가지 중 하나를 고르게 함
+type Choice = Category | "random";
 
-function openRecord(id?: number) {
-  router.push(
-    id === undefined
-      ? "/record-detail"
-      : { pathname: "/record-detail", params: { id: String(id) } },
-  );
+function choices(jobName: string): { key: Choice; title: string; desc: string }[] {
+  return [
+    { key: "random", title: "랜덤", desc: "네 가지 중 하나를 골라 드려요" },
+    { key: "intro", title: "자기소개", desc: "나를 1~2분 안에 소개하기" },
+    { key: "motivation", title: "지원동기", desc: "이 회사와 직무를 고른 이유" },
+    { key: "personality", title: "인성", desc: "갈등, 실패, 협업 경험" },
+    { key: "technical", title: "기술", desc: `${jobName} 직무 지식` },
+  ];
 }
 
-function StartQuestion() {
+function StartQuestion({ jobName }: { jobName: string }) {
   const styles = useThemedStyles(createStyles);
-  const [category, setCategory] = useState("랜덤");
+  const { assets } = useTheme();
+  const [choice, setChoice] = useState<Choice>("random");
 
   return (
-    <View style={styles.start}>
-      <Text style={styles.title}>{"어떤 질문으로\n연습할까요?"}</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chips}
-      >
-        {CATEGORIES.map((item) => (
-          <Chip
-            key={item}
-            label={item}
-            selected={item === category}
-            onPress={() => setCategory(item)}
-          />
-        ))}
-      </ScrollView>
-      <Button label="면접 시작하기" onPress={() => router.push("/generating")} />
+    <View style={styles.body}>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>어떤 질문을 받을까요?</Text>
+        <View style={styles.cardSpacer} />
+        {choices(jobName).map((item, i) => {
+          const selected = item.key === choice;
+          return (
+            <View key={item.key}>
+              {i > 0 && <View style={styles.divider} />}
+              <Pressable
+                style={styles.radioRow}
+                accessibilityRole="radio"
+                aria-checked={selected}
+                onPress={() => setChoice(item.key)}
+              >
+                <Image
+                  source={selected ? assets.v4RadioOn : assets.v4RadioOff}
+                  style={styles.radio}
+                />
+                <View style={styles.radioText}>
+                  <Text style={selected ? styles.radioTitleOn : styles.radioTitle}>
+                    {item.title}
+                  </Text>
+                  <Text style={styles.radioDesc}>{item.desc}</Text>
+                </View>
+              </Pressable>
+            </View>
+          );
+        })}
+      </View>
+      <Text style={styles.notice}>
+        {`${jobName} 직무에 맞춰 AI가 새 질문을 만들어요.\n질문은 하루에 한 번 정식으로 답할 수 있어요.`}
+      </Text>
+      <Button
+        label="질문 받기"
+        onPress={() =>
+          router.push({
+            pathname: "/generating",
+            params: choice === "random" ? {} : { category: choice },
+          })
+        }
+      />
     </View>
   );
 }
 
-function TodayDone() {
+function TodayDone({ answer }: { answer: RecordListItem }) {
   const styles = useThemedStyles(createStyles);
+  const left = Math.max(RETRY_LIMIT - answer.retryCount, 0);
+
   return (
-    <View style={styles.start}>
-      <View style={styles.intro}>
-        <Text style={styles.title}>{"오늘 답변은\n끝났어요"}</Text>
-        <Text style={styles.subtitle}>내일 0시에 새 질문이 열려요</Text>
-      </View>
-      <RecordItem {...TODAY_RESULT} onPress={() => openRecord()} />
+    <View style={styles.body}>
+      <DailyPad date={answer.answerDate} doodle={<Text style={styles.done}>끝!</Text>}>
+        <View style={styles.message}>
+          <Text style={styles.messageTitle}>오늘 답변을 마쳤어요.</Text>
+          <Text style={styles.messageSub}>다음 질문은 내일 0시에 열려요.</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.result}>
+          <View style={styles.resultText}>
+            <Text style={styles.resultCategory}>{CATEGORY_LABELS[answer.category]}</Text>
+            <Text style={styles.resultQuestion}>{answer.question}</Text>
+          </View>
+          {answer.score === null ? (
+            <Text style={styles.resultPending}>채점 중</Text>
+          ) : (
+            <ScoreCircle score={answer.score} />
+          )}
+        </View>
+        <View style={styles.retryRow}>
+          {answer.retryCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{`재답변 ${answer.retryCount}번`}</Text>
+            </View>
+          )}
+          <Text style={styles.retryText}>
+            {left > 0
+              ? `오늘 ${left}번 더 다시 답할 수 있어요.`
+              : "오늘은 더 다시 답할 수 없어요."}
+          </Text>
+        </View>
+        <Button
+          label="같은 질문 다시 답하기"
+          variant="secondary"
+          disabled={left === 0}
+          onPress={() => router.push("/answer")}
+        />
+      </DailyPad>
       <Button
-        label="같은 질문 다시 답하기"
-        variant="secondary"
-        onPress={() => router.push("/answer")}
+        label="오늘 첨삭 다시 보기"
+        variant="ghost"
+        onPress={() =>
+          router.push({ pathname: "/record-detail", params: { id: String(answer.id) } })
+        }
       />
     </View>
   );
@@ -77,25 +142,28 @@ function TodayDone() {
 
 export default function Question() {
   const styles = useThemedStyles(createStyles);
-  // API 연동 전까지 오늘 답변 여부를 주소의 done 값으로 구분함
-  const { done } = useLocalSearchParams<{ done?: string }>();
-  const [pastItems, setPastItems] = useState<RecordListItem[] | null>(null);
+  const { assets } = useTheme();
+  const [jobName, setJobName] = useState<string | null>(null);
+  // undefined = 아직 불러오는 중, null = 오늘 답변 없음
+  const [todayAnswer, setTodayAnswer] = useState<RecordListItem | null | undefined>(undefined);
 
-  // 탭으로 돌아올 때마다 지난 질문을 다시 불러옴.
-  // 오늘 답변은 위쪽(오늘 결과)에 따로 나오므로 빼고 최근 3개만 보여줌
+  // 탭으로 돌아올 때마다 직무와 오늘 답변 여부를 다시 불러옴
+  // 가장 최근 정식 답변이 오늘 날짜면 "오늘 완료" 화면
   useFocusEffect(
     useCallback(() => {
       let active = true;
       (async () => {
         try {
-          const page = await getJson<RecordPage>(`/api/answers?limit=${PAST_COUNT + 1}`);
-          if (!active || !page) return;
-          const today = todayString();
-          setPastItems(
-            page.items.filter((item) => item.answerDate !== today).slice(0, PAST_COUNT),
-          );
+          const [profile, page] = await Promise.all([
+            getJson<Profile>("/api/profile"),
+            getJson<RecordPage>("/api/answers?limit=1"),
+          ]);
+          if (!active || !profile || !page) return;
+          setJobName(profile.jobRoleName);
+          const latest = page.items[0];
+          setTodayAnswer(latest && latest.answerDate === todayString() ? latest : null);
         } catch (e) {
-          console.log("past questions load failed:", e);
+          console.log("question load failed:", e);
         }
       })();
       return () => {
@@ -104,34 +172,20 @@ export default function Question() {
     }, []),
   );
 
+  if (todayAnswer === undefined) return null;
+  const job = jobName ?? "선택한";
+
   return (
     <View style={styles.container}>
       <ScreenHeader title="질문">
-        <JobPill job="백엔드" />
+        <Pressable style={styles.role} onPress={() => router.navigate("/profile")}>
+          <Text style={styles.roleText}>{jobName ?? "직무 선택"}</Text>
+          <Image source={assets.v4ChevronDown} style={styles.roleIcon} />
+        </Pressable>
       </ScreenHeader>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.body}>
-        {done ? <TodayDone /> : <StartQuestion />}
-
-        <View style={styles.past}>
-          <SectionHeader
-            title="지난 질문"
-            trailing="전체 보기"
-            onPressTrailing={() => router.navigate("/record")}
-          />
-          {pastItems?.length === 0 && (
-            <Text style={styles.subtitle}>아직 답한 질문이 없어요</Text>
-          )}
-          {pastItems?.map((item) => (
-            <RecordItem
-              key={item.id}
-              meta={recordMeta(item)}
-              question={item.question}
-              score={item.score}
-              onPress={() => openRecord(item.id)}
-            />
-          ))}
-        </View>
+      <ScrollView style={styles.scroll}>
+        {todayAnswer ? <TodayDone answer={todayAnswer} /> : <StartQuestion jobName={job} />}
       </ScrollView>
     </View>
   );
@@ -140,35 +194,161 @@ export default function Question() {
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: colors.bg,
+  },
+  role: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  roleText: {
+    fontFamily: fonts.semibold,
+    fontSize: 15,
+    color: colors.text,
+  },
+  roleIcon: {
+    width: 14,
+    height: 14,
   },
   scroll: {
     flex: 1,
   },
   body: {
-    gap: spacing["2xl"],
-    paddingTop: spacing.lg,
+    gap: 14,
+    paddingTop: spacing.sm,
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing["2xl"],
   },
-  start: {
-    gap: spacing.xl,
+  divider: {
+    height: 1,
+    backgroundColor: colors.line,
   },
-  intro: {
+
+  // 질문 고르기
+  card: {
+    paddingTop: 18,
+    paddingHorizontal: 20,
+    paddingBottom: 6,
+    borderWidth: 1,
+    borderColor: colors.lineSoft,
+    borderRadius: 14,
+    backgroundColor: colors.surface,
+  },
+  cardTitle: {
+    fontFamily: fonts.semibold,
+    fontSize: 19,
+    letterSpacing: -0.19,
+    color: colors.text,
+  },
+  cardSpacer: {
+    height: 6,
+  },
+  radioRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingVertical: 14,
+  },
+  radio: {
+    width: 22,
+    height: 22,
+  },
+  radioText: {
+    flex: 1,
+    gap: 2,
+  },
+  radioTitle: {
+    fontFamily: fonts.medium,
+    fontSize: 16,
+    color: colors.text,
+  },
+  radioTitleOn: {
+    fontFamily: fonts.semibold,
+    fontSize: 16,
+    color: colors.text,
+  },
+  radioDesc: {
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    color: colors.textSub,
+  },
+  notice: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    lineHeight: 22,
+    color: colors.textSub,
+  },
+
+  // 오늘 완료
+  done: {
+    fontFamily: fonts.pen,
+    fontSize: 64,
+    lineHeight: 58,
+    color: colors.accent,
+    transform: [{ rotate: "8deg" }],
+  },
+  message: {
     gap: spacing.xs,
+    paddingTop: spacing.sm,
+    paddingBottom: 18,
   },
-  title: {
-    ...typography.h2,
-    color: colors.textPrimary,
+  messageTitle: {
+    fontFamily: fonts.medium,
+    fontSize: 16,
+    color: colors.text,
   },
-  subtitle: {
-    ...typography.bodyMedium,
-    color: colors.textTertiary,
+  messageSub: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    color: colors.textSub,
   },
-  chips: {
-    gap: spacing.sm,
-  },
-  past: {
+  result: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.md,
+    paddingTop: spacing.lg,
+    paddingBottom: 14,
+  },
+  resultText: {
+    flex: 1,
+    gap: 3,
+  },
+  resultCategory: {
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    color: colors.textSub,
+  },
+  resultQuestion: {
+    fontFamily: fonts.medium,
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.text,
+  },
+  resultPending: {
+    fontFamily: fonts.medium,
+    fontSize: 13,
+    color: colors.textSub,
+  },
+  retryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingBottom: spacing.lg,
+  },
+  badge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+    backgroundColor: colors.highlight,
+  },
+  badgeText: {
+    fontFamily: fonts.semibold,
+    fontSize: 11,
+    color: colors.onHighlight,
+  },
+  retryText: {
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    color: colors.textSub,
   },
 });

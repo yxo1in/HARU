@@ -4,13 +4,13 @@ import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/button";
 import { ChartLine } from "@/components/chart-frame";
+import { DailyPad } from "@/components/daily-pad";
 import { ScreenHeader } from "@/components/screen-header";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
 import { fonts, radius, spacing, type ThemeColors } from "@/constants/theme";
 import { getJson } from "@/lib/api";
 
 const WEEKLY_GOAL = 5;
-const WEEKDAY_NAMES = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
 
 type Quests = {
   answeredToday: boolean;
@@ -159,8 +159,6 @@ export default function Home() {
   const { nickname, jobRoleName, last7Days, streak, scores } = home;
   // 서버가 한국 시간 기준으로 만든 last7Days 의 마지막 날이 오늘
   const today = last7Days[last7Days.length - 1].date;
-  const [year, month, day] = today.split("-").map(Number);
-  const weekday = WEEKDAY_NAMES[new Date(`${today}T00:00:00Z`).getUTCDay()];
   const answered = home.quests.answeredToday;
   const goals = buildGoals(home.quests);
   const doneCount = goals.filter((goal) => goal.current >= goal.total).length;
@@ -177,46 +175,34 @@ export default function Home() {
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.body}>
         {/* 오늘 날짜 일력 */}
-        <View style={styles.pad}>
-          <View style={styles.binding} />
-          <View style={styles.sheet}>
-            <Image source={assets.v4Perforation} style={styles.perforation} />
-            <View style={styles.monthRow}>
-              <Text style={styles.month}>{`${year}년 ${month}월`}</Text>
-              <Text style={styles.weekday}>{weekday}</Text>
-            </View>
-            <View style={styles.dateRow}>
-              <View style={styles.date}>
-                <View style={styles.highlighter} />
-                <Text style={styles.dateText}>{day}</Text>
+        <DailyPad
+          date={today}
+          doodle={
+            streak > 0 && (
+              <View style={styles.streak}>
+                <Text style={styles.streakDays}>{`${streak}일`}</Text>
+                <Text style={styles.streakLabel}>연속</Text>
               </View>
-              {streak > 0 && (
-                <View style={styles.streak}>
-                  <Text style={styles.streakDays}>{`${streak}일`}</Text>
-                  <Text style={styles.streakLabel}>연속</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.message}>
-              <Text style={styles.messageTitle}>
-                {answered
-                  ? `${nickname}님, 오늘 답변을 마쳤어요.`
-                  : `${nickname}님, 오늘의 질문을 아직 받지 않았어요.`}
-              </Text>
-              <Text style={styles.messageSub}>
-                {answered
-                  ? `내일도 답하면 ${streak + 1}일 연속이에요.`
-                  : `오늘 답하면 ${streak + 1}일 연속이 돼요.`}
-              </Text>
-            </View>
-            <Button
-              label={answered ? "오늘 답변 보기" : "오늘 질문 받기"}
-              onPress={() => router.navigate("/question")}
-            />
+            )
+          }
+        >
+          <View style={styles.message}>
+            <Text style={styles.messageTitle}>
+              {answered
+                ? `${nickname}님, 오늘 답변을 마쳤어요.`
+                : `${nickname}님, 오늘의 질문을 아직 받지 않았어요.`}
+            </Text>
+            <Text style={styles.messageSub}>
+              {answered
+                ? `내일도 답하면 ${streak + 1}일 연속이에요.`
+                : `오늘 답하면 ${streak + 1}일 연속이 돼요.`}
+            </Text>
           </View>
-          <View style={[styles.pageEdge, styles.pageEdgeFirst]} />
-          <View style={[styles.pageEdge, styles.pageEdgeSecond]} />
-        </View>
+          <Button
+            label={answered ? "오늘 답변 보기" : "오늘 질문 받기"}
+            onPress={() => router.navigate("/question")}
+          />
+        </DailyPad>
 
         <View style={styles.spacer} />
 
@@ -328,76 +314,6 @@ const createStyles = (colors: ThemeColors) =>
       paddingBottom: spacing["2xl"],
     },
 
-    // 일력
-    pad: {
-      alignItems: "center",
-    },
-    binding: {
-      alignSelf: "stretch",
-      height: 14,
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
-      backgroundColor: colors.accent,
-    },
-    sheet: {
-      alignSelf: "stretch",
-      paddingTop: spacing.lg,
-      paddingHorizontal: 22,
-      paddingBottom: 22,
-      borderWidth: 1,
-      borderTopWidth: 0,
-      borderColor: colors.lineSoft,
-      borderBottomLeftRadius: radius.sm,
-      borderBottomRightRadius: radius.sm,
-      backgroundColor: colors.surface,
-    },
-    perforation: {
-      alignSelf: "center",
-      width: 301,
-      height: 8,
-    },
-    monthRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      paddingTop: 14,
-    },
-    month: {
-      fontFamily: fonts.medium,
-      fontSize: 14,
-      color: colors.text,
-    },
-    weekday: {
-      fontFamily: fonts.medium,
-      fontSize: 14,
-      color: colors.textSub,
-    },
-    dateRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.lg,
-    },
-    date: {
-      height: 128,
-      justifyContent: "center",
-    },
-    // 날짜 아래쪽에 살짝 기울어진 형광펜 (다크에서는 투명)
-    highlighter: {
-      position: "absolute",
-      left: -4,
-      right: -4,
-      top: 64,
-      height: 46,
-      borderRadius: radius.sm,
-      backgroundColor: colors.highlighter,
-      transform: [{ rotate: "-2deg" }],
-    },
-    dateText: {
-      fontFamily: fonts.bold,
-      fontSize: 128,
-      lineHeight: 128,
-      letterSpacing: -2.56,
-      color: colors.text,
-    },
     streak: {
       alignItems: "center",
       transform: [{ rotate: "6deg" }],
@@ -428,24 +344,6 @@ const createStyles = (colors: ThemeColors) =>
       fontFamily: fonts.regular,
       fontSize: 14,
       color: colors.textSub,
-    },
-    // 일력 아래에 겹쳐 보이는 종이 두 장
-    pageEdge: {
-      height: 4,
-      borderWidth: 1,
-      borderTopWidth: 0,
-      borderColor: colors.line,
-      borderBottomLeftRadius: 4,
-      borderBottomRightRadius: 4,
-      backgroundColor: colors.surface,
-    },
-    pageEdgeFirst: {
-      alignSelf: "stretch",
-      marginHorizontal: 6,
-    },
-    pageEdgeSecond: {
-      alignSelf: "stretch",
-      marginHorizontal: 12,
     },
     spacer: {
       height: 4,
