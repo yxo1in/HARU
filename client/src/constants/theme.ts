@@ -57,6 +57,8 @@ export const darkColors = {
   onAccent: "#000000", // 강조색 위 글자 (기록 줄 일력의 "11월")
   accentSoft: "#3a3214", // 점수 동그라미 바탕
   skeleton: "#000000", // 불러오는 중 회색 막대
+  ink: "#8fa8ff", // 답변 쓰기 파란 글씨
+  rule: "#2c2c2e", // 답변 쓰기 공책 줄
 
   // v3 이름
   bgPrimary: "#1c1c1e",
@@ -115,6 +117,8 @@ export const lightColors: ThemeColors = {
   onAccent: "#ffffff",
   accentSoft: "#fde8e4",
   skeleton: "#f0f0ec",
+  ink: "#1e40c8",
+  rule: "#e4e5e0",
 
   // v3 이름
   bgPrimary: "#ffffff",

@@ -71,8 +71,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     height: 24,
   },
   title: {
-    fontFamily: fonts.medium,
-    fontSize: 14,
-    color: colors.textSub,
+    fontFamily: fonts.semibold,
+    fontSize: 16,
+    color: colors.text,
   },
 });
