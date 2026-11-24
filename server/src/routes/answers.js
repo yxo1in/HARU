@@ -69,11 +69,9 @@ module.exports = router;
 // ===================================================================
 // TODO: 답변 API 추가 (번호 순서대로, README 6-1 / 6-2 / 6-4)
 // ===================================================================
-// TODO(1): Gemini 채점 함수 — server/src/lib/gemini.js 새 파일
-//          입력: 질문, 카테고리, 직무, 답변 → 출력 { score, strength, weakness, suggestion }
-//          responseMimeType: "application/json" + responseSchema 로 형식 강제, 타임아웃 30초
-//          score 가 0~100 정수가 아니면 실패로 처리, 사용한 모델 이름도 같이 돌려주기
-//          키는 process.env.GEMINI_KEY
+// TODO(1): (완료) AI 채점 함수 — server/src/lib/grader.js 의 gradeAnswer (Groq)
+//          gradeAnswer({ question, category, jobRole, answer })
+//          → { score, strength, weakness, suggestion, model } / 실패하면 throw
 // TODO(2): 한국 날짜 헬퍼 공용으로 빼기
 //          home.js 의 today 계산(9시간 더하기)을 server/src/lib/date.js 로 옮겨서 같이 쓰기
 // TODO(3): POST /  답변 제출 + 채점
@@ -85,7 +83,7 @@ module.exports = router;
 //             → 없으면 422, 오늘 재답변 5개 이상이면 429
 //          4. answers INSERT (answer_date = 한국 날짜, feedback_status = 'pending')
 //             → MySQL 1062 에러(오늘 정식 답변 이미 있음) 면 409
-//          5. Gemini 채점 (TODO(1))
+//          5. AI 채점 (TODO(1) 의 gradeAnswer, try/catch 로 실패 처리)
 //             성공 → 트랜잭션으로 feedbacks INSERT + feedback_status = 'done'
 //             실패 → feedback_status = 'failed' (답변은 남김)
 //          6. 201 { answer, feedback }  채점 실패면 feedback: null
