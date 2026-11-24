@@ -20,7 +20,7 @@ function goBack() {
 
 type NavBarProps = {
   title?: string;
-  icon?: "back" | "close";
+  icon?: "back" | "close" | "none"; // none: 아이콘 없이 제목만 (채점 중)
   onPress?: () => void;
   right?: ReactNode;
 };
@@ -33,14 +33,18 @@ export function NavBar({ title, icon = "back", onPress = goBack, right }: NavBar
   return (
     <View style={[styles.bar, { paddingTop: insets.top, height: NAV_HEIGHT + insets.top }]}>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
-      <Pressable
-        style={styles.side}
-        accessibilityRole="button"
-        accessibilityLabel={icon === "close" ? "닫기" : "뒤로가기"}
-        onPress={onPress}
-      >
-        <Image source={icon === "close" ? assets.v4Close : assets.v4Back} style={styles.icon} />
-      </Pressable>
+      {icon === "none" ? (
+        <View style={styles.side} />
+      ) : (
+        <Pressable
+          style={styles.side}
+          accessibilityRole="button"
+          accessibilityLabel={icon === "close" ? "닫기" : "뒤로가기"}
+          onPress={onPress}
+        >
+          <Image source={icon === "close" ? assets.v4Close : assets.v4Back} style={styles.icon} />
+        </Pressable>
+      )}
       {title ? <Text style={styles.title}>{title}</Text> : null}
       <View style={[styles.side, styles.right]}>{right}</View>
     </View>

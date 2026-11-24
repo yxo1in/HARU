@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
 import { fonts, type ThemeColors } from "@/constants/theme";
@@ -58,4 +59,80 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontFamily: fonts.pen,
     color: colors.accent,
   },
+  empty: {
+    fontFamily: fonts.pen,
+    color: colors.textFaint,
+  },
 });
+
+// 채점 중: 연한 바탕 + 12시부터 짧은 원호가 계속 돌아감 + 손글씨 "..."
+export function GradingCircle({ size = 76 }: { size?: number }) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+  // 렌더할 때마다 새로 만들지 않도록 처음 한 번만 만든 값을 계속 씀
+  const [spin] = useState(() => new Animated.Value(0));
+  const r = (size - 4) / 2;
+  const length = 2 * Math.PI * r;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.timing(spin, { toValue: 1, duration: 1200, easing: Easing.linear, useNativeDriver: true }),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [spin]);
+
+  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
+
+  return (
+    <View style={{ width: size, height: size }}>
+      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
+        <Circle cx={size / 2} cy={size / 2} r={size / 2} fill={colors.accentSoft} />
+      </Svg>
+      <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ rotate }] }]}>
+        <Svg width={size} height={size}>
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke={colors.accent}
+            strokeWidth={4}
+            strokeLinecap="round"
+            strokeDasharray={`${length * 0.2} ${length}`}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        </Svg>
+      </Animated.View>
+      <View style={styles.center}>
+        <Text style={[styles.score, { fontSize: size * 0.53, lineHeight: size * 0.48 }]}>...</Text>
+      </View>
+    </View>
+  );
+}
+
+// 점수 없음(채점 실패): 점선 동그라미 + 흐린 손글씨 "?"
+export function EmptyScoreCircle({ size = 76 }: { size?: number }) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+  const r = (size - 3) / 2;
+
+  return (
+    <View style={{ width: size, height: size }}>
+      <Svg width={size} height={size}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={colors.line}
+          strokeWidth={3}
+          strokeDasharray="6 6"
+        />
+      </Svg>
+      <View style={styles.center}>
+        <Text style={[styles.empty, { fontSize: size * 0.58, lineHeight: size * 0.52 }]}>?</Text>
+      </View>
+    </View>
+  );
+}

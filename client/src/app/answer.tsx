@@ -91,7 +91,7 @@ export default function Answer() {
           style={styles.submit}
           disabled={!trimmedAnswer}
           onPress={() =>
-            router.replace({ pathname: "/feedback", params: { answer: trimmedAnswer } })
+            router.replace({ pathname: "/grading", params: { answer: trimmedAnswer } })
           }
         />
       </View>
