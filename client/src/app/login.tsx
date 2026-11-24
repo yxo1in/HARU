@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
 import { NavBar } from "@/components/nav-bar";
 import { TextField } from "@/components/text-field";
-import { spacing, typography, type ThemeColors } from "@/constants/theme";
+import { fonts, spacing, type ThemeColors } from "@/constants/theme";
 import { useThemedStyles } from "@/components/theme-provider";
 import { useState } from "react";
 import { saveToken } from "@/lib/token";
@@ -74,11 +74,14 @@ export default function Login() {
             placeholder="비밀번호 입력"
             secure
             onChangeText={setPassword}
+            // 로그인 실패 문구는 비밀번호 칸 아래에 빨갛게
+            state={error ? "error" : "default"}
+            helper={error || undefined}
           />
         </View>
       </ScrollView>
       <View
-        style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}
+        style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.md }]}
       >
         <Button
           label="로그인"
@@ -86,9 +89,8 @@ export default function Login() {
           style={styles.submit}
           disabled={loading}
         />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Pressable style={styles.signUp} onPress={() => router.push("/signup")}>
-          <Text style={styles.signUpHint}>처음이신가요?</Text>
+        <Pressable style={styles.signUp} accessibilityRole="button" onPress={() => router.push("/signup")}>
+          <Text style={styles.signUpHint}>처음이라면</Text>
           <Text style={styles.signUpLink}>회원가입</Text>
         </Pressable>
       </View>
@@ -100,28 +102,32 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.bgSecondary,
+      backgroundColor: colors.bg,
     },
     scroll: {
       flex: 1,
     },
     body: {
-      gap: 48,
-      paddingTop: spacing.xl,
+      gap: spacing.sm,
+      paddingTop: spacing.lg,
       paddingHorizontal: spacing.xl,
     },
     title: {
-      ...typography.h2,
-      color: colors.textPrimary,
+      fontFamily: fonts.bold,
+      fontSize: 28,
+      letterSpacing: -0.56,
+      color: colors.text,
     },
     form: {
-      gap: spacing.xl,
+      gap: 18,
+      paddingTop: 28,
     },
     footer: {
       alignItems: "center",
-      gap: spacing.md,
+      gap: spacing.lg,
       paddingTop: spacing.md,
       paddingHorizontal: spacing.xl,
+      backgroundColor: colors.bg,
     },
     submit: {
       alignSelf: "stretch",
@@ -131,15 +137,13 @@ const createStyles = (colors: ThemeColors) =>
       gap: 6,
     },
     signUpHint: {
-      ...typography.bodySmall,
-      color: colors.textTertiary,
+      fontFamily: fonts.regular,
+      fontSize: 14,
+      color: colors.textSub,
     },
     signUpLink: {
-      ...typography.labelMedium,
-      color: colors.textBrand,
-    },
-    error: {
-      ...typography.caption,
-      color: colors.textDanger,
+      fontFamily: fonts.semibold,
+      fontSize: 14,
+      color: colors.text,
     },
   });

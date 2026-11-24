@@ -1,53 +1,24 @@
-import { Image, type ImageSource } from "expo-image";
-import { Redirect, router } from "expo-router";
+import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
-import {
-  radius,
-  spacing,
-  typography,
-  type ThemeColors,
-} from "@/constants/theme";
+import { DailyPad } from "@/components/daily-pad";
+import { ScoreCircle } from "@/components/score-circle";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
+import { fonts, spacing, type ThemeColors } from "@/constants/theme";
+import { todayString } from "@/lib/records";
 import { getToken } from "@/lib/token";
-import { useState, useEffect } from "react";
 
-const ACTIONS_CONTENT_HEIGHT = 231;
-
-type SocialButtonProps = {
-  icon: ImageSource;
-  label: string;
-  primary?: boolean;
-  onPress: () => void;
-};
-
-function SocialButton({ icon, label, primary, onPress }: SocialButtonProps) {
-  const styles = useThemedStyles(createStyles);
-  return (
-    <Pressable
-      style={[
-        styles.social,
-        primary ? styles.socialPrimary : styles.socialDefault,
-      ]}
-      accessibilityRole="button"
-      onPress={onPress}
-    >
-      <Image source={icon} style={styles.socialIcon} />
-      <Text style={primary ? styles.socialLabelPrimary : styles.socialLabel}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
+// 웰컴: 오늘 날짜 일력에 예시 질문과 점수를 보여주고, 아래에 로그인 버튼
 export default function Index() {
   const styles = useThemedStyles(createStyles);
-  const { assets, scheme } = useTheme();
+  const { scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const [checked, setChecked] = useState(false);
 
+  // 이미 로그인한 기기면 바로 홈으로
   useEffect(() => {
     getToken().then((token) => {
       if (token) {
@@ -63,50 +34,43 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
-      <View style={[styles.hero, { paddingTop: insets.top }]}>
-        <Image source={assets.welcomeBlobs} style={styles.blobs} />
-        <View style={styles.intro}>
-          <Image
-            source={assets.logo}
-            style={styles.logo}
-            accessibilityLabel="haru"
-          />
-          <View style={styles.headline}>
-            <Text style={styles.headlineText}>{"하루 한 번,\n면접 연습."}</Text>
-            <Image source={assets.doodle} style={styles.doodleUnderline} />
-          </View>
-        </View>
-        <View style={styles.mascot}>
-          <Image source={assets.haruWelcome} style={styles.haru} />
-          <View style={styles.speechBubble}>
-            <Text style={styles.speechBubbleText}>오늘 질문 준비해 뒀어요</Text>
-          </View>
-        </View>
-      </View>
-
-      <View
-        style={[
-          styles.actions,
-          { height: ACTIONS_CONTENT_HEIGHT + insets.bottom },
-        ]}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.body, { paddingTop: insets.top + spacing.xl }]}
       >
-        <SocialButton
-          icon={assets.google}
-          label="Google로 로그인"
+        <Text style={styles.logo}>haru</Text>
+        <View style={styles.padSpacer} />
+        <DailyPad date={todayString()}>
+          <View style={styles.sample}>
+            <View style={styles.sampleText}>
+              <Text style={styles.sampleLabel}>오늘의 질문</Text>
+              <Text style={styles.sampleQuestion}>{"우리 회사에 지원한\n이유는 무엇인가요?"}</Text>
+            </View>
+            <ScoreCircle score={82} size={66} />
+          </View>
+        </DailyPad>
+        <View style={styles.headlineSpacer} />
+        <Text style={styles.headline}>{"하루 한 장씩,\n면접 질문에 답해요."}</Text>
+        <Text style={styles.sub}>답변을 쓰면 빨간펜 첨삭과 점수를 받아요.</Text>
+      </ScrollView>
+
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
+        {/* 구글 로그인은 아직 없어서 지금은 홈으로 바로 이동 */}
+        <Button
+          label="Google로 계속하기"
+          style={styles.button}
           onPress={() => router.replace("/home")}
         />
-        <SocialButton
-          icon={assets.id}
+        <Button
           label="아이디로 로그인"
-          primary
+          variant="secondary"
+          style={styles.button}
           onPress={() => router.push("/login")}
         />
-        <Button
-          label="처음이신가요? 회원가입"
-          variant="ghost"
-          size="sm"
-          onPress={() => router.push("/signup")}
-        />
+        <Pressable style={styles.signUp} accessibilityRole="button" onPress={() => router.push("/signup")}>
+          <Text style={styles.signUpHint}>처음이라면</Text>
+          <Text style={styles.signUpLink}>회원가입</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -116,105 +80,85 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.bgSecondary,
+      backgroundColor: colors.bg,
     },
-    hero: {
+    scroll: {
       flex: 1,
-      overflow: "hidden",
-      backgroundColor: colors.bgSky,
     },
-    // Figma에서 Hero 위로 110만큼 올라가 있는 번짐 배경
-    blobs: {
-      position: "absolute",
-      left: 0,
-      top: -110,
-      width: 580,
-      height: 696,
-    },
-    intro: {
-      paddingTop: spacing["2xl"],
+    body: {
       paddingHorizontal: spacing.xl,
-      gap: spacing.xl,
+      paddingBottom: spacing.xl,
     },
     logo: {
-      width: 131.44,
-      height: 49.6,
+      fontFamily: fonts.bold,
+      fontSize: 22,
+      letterSpacing: -0.22,
+      color: colors.text,
+    },
+    padSpacer: {
+      height: 26,
+    },
+    sample: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: spacing.md,
+      paddingTop: 10,
+    },
+    sampleText: {
+      flex: 1,
+      gap: spacing.xs,
+    },
+    sampleLabel: {
+      fontFamily: fonts.regular,
+      fontSize: 13,
+      color: colors.textSub,
+    },
+    sampleQuestion: {
+      fontFamily: fonts.semibold,
+      fontSize: 18,
+      lineHeight: 25,
+      letterSpacing: -0.18,
+      color: colors.text,
+    },
+    headlineSpacer: {
+      height: 34,
     },
     headline: {
-      width: 177,
-      height: 108,
+      fontFamily: fonts.bold,
+      fontSize: 30,
+      lineHeight: 39,
+      letterSpacing: -0.6,
+      color: colors.text,
     },
-    headlineText: {
-      ...typography.display,
-      color: colors.textPrimary,
+    sub: {
+      marginTop: 10,
+      fontFamily: fonts.regular,
+      fontSize: 16,
+      lineHeight: 24,
+      color: colors.textSub,
     },
-    // SVG에 선 두께만큼 여백(1.75)이 있어서 Figma 위치(2, 96)에서 그만큼 당김
-    doodleUnderline: {
-      position: "absolute",
-      left: 0.25,
-      top: 94.25,
-      width: 143.501,
-      height: 12.5,
-    },
-    mascot: {
-      flex: 1,
-    },
-    // 화면 폭이 달라도 오른쪽 기준으로 붙임
-    haru: {
-      position: "absolute",
-      right: -40,
-      top: 44.4,
-      width: 324,
-      height: 324,
-    },
-    // 164 × 36 말풍선을 6도 회전. 회전 전 기준 위치
-    speechBubble: {
-      position: "absolute",
-      left: 21.67,
-      top: 119.91,
-      paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.sm,
-      borderRadius: radius.full,
-      backgroundColor: colors.bgInverse,
-      transform: [{ rotate: "6deg" }],
-    },
-    speechBubbleText: {
-      ...typography.labelMedium,
-      color: colors.textInverse,
-    },
-    actions: {
+    footer: {
       alignItems: "center",
-      gap: spacing.md,
-      paddingTop: spacing.xl,
+      gap: 10,
+      paddingTop: spacing.md,
       paddingHorizontal: spacing.xl,
+      backgroundColor: colors.bg,
     },
-    social: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.sm,
+    button: {
       alignSelf: "stretch",
-      height: 56,
-      paddingHorizontal: spacing.xl,
-      borderRadius: radius.full,
     },
-    socialDefault: {
-      backgroundColor: colors.bgPrimary,
-      boxShadow: "0px 4px 8px rgba(0,0,0,0.08)",
+    signUp: {
+      flexDirection: "row",
+      gap: 6,
     },
-    socialPrimary: {
-      backgroundColor: colors.actionDefault,
+    signUpHint: {
+      fontFamily: fonts.regular,
+      fontSize: 14,
+      color: colors.textSub,
     },
-    socialIcon: {
-      width: 20,
-      height: 20,
-    },
-    socialLabel: {
-      ...typography.labelLarge,
-      color: colors.textPrimary,
-    },
-    socialLabelPrimary: {
-      ...typography.labelLarge,
-      color: colors.textOnAccent,
+    signUpLink: {
+      fontFamily: fonts.semibold,
+      fontSize: 14,
+      color: colors.text,
     },
   });

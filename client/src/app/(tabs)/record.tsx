@@ -278,6 +278,7 @@ export default function Record() {
             <Chip
               key={chip.label}
               label={chip.label}
+              compact
               selected={chip.label === selectedChip.label}
               onPress={() => setSelectedChip(chip)}
             />

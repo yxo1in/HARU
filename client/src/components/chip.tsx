@@ -6,14 +6,15 @@ import { useThemedStyles } from "@/components/theme-provider";
 type ChipProps = {
   label: string;
   selected?: boolean;
+  compact?: boolean; // 좌우 여백 11px (기록 탭 유형 필터)
   onPress?: () => void;
 };
 
-export function Chip({ label, selected, onPress }: ChipProps) {
+export function Chip({ label, selected, compact, onPress }: ChipProps) {
   const styles = useThemedStyles(createStyles);
   return (
     <Pressable
-      style={[styles.chip, selected && styles.selected]}
+      style={[styles.chip, compact && styles.compact, selected && styles.selected]}
       accessibilityRole="button"
       aria-selected={selected}
       onPress={onPress}
@@ -25,12 +26,15 @@ export function Chip({ label, selected, onPress }: ChipProps) {
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   chip: {
-    paddingHorizontal: 11,
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: colors.line,
     borderRadius: 8,
     backgroundColor: colors.surface,
+  },
+  compact: {
+    paddingHorizontal: 11,
   },
   selected: {
     borderColor: colors.buttonBg,
