@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/button";
 import { DailyPad } from "@/components/daily-pad";
+import { RadioRow } from "@/components/radio-row";
 import { ScoreCircle } from "@/components/score-circle";
 import { ScreenHeader } from "@/components/screen-header";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
@@ -37,7 +38,6 @@ function choices(jobName: string): { key: Choice; title: string; desc: string }[
 
 function StartQuestion({ jobName }: { jobName: string }) {
   const styles = useThemedStyles(createStyles);
-  const { assets } = useTheme();
   const [choice, setChoice] = useState<Choice>("random");
 
   return (
@@ -50,23 +50,12 @@ function StartQuestion({ jobName }: { jobName: string }) {
           return (
             <View key={item.key}>
               {i > 0 && <View style={styles.divider} />}
-              <Pressable
-                style={styles.radioRow}
-                accessibilityRole="radio"
-                aria-checked={selected}
+              <RadioRow
+                title={item.title}
+                desc={item.desc}
+                selected={selected}
                 onPress={() => setChoice(item.key)}
-              >
-                <Image
-                  source={selected ? assets.v4RadioOn : assets.v4RadioOff}
-                  style={styles.radio}
-                />
-                <View style={styles.radioText}>
-                  <Text style={selected ? styles.radioTitleOn : styles.radioTitle}>
-                    {item.title}
-                  </Text>
-                  <Text style={styles.radioDesc}>{item.desc}</Text>
-                </View>
-              </Pressable>
+              />
             </View>
           );
         })}
@@ -242,35 +231,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   cardSpacer: {
     height: 6,
-  },
-  radioRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    paddingVertical: 14,
-  },
-  radio: {
-    width: 22,
-    height: 22,
-  },
-  radioText: {
-    flex: 1,
-    gap: 2,
-  },
-  radioTitle: {
-    fontFamily: fonts.medium,
-    fontSize: 16,
-    color: colors.text,
-  },
-  radioTitleOn: {
-    fontFamily: fonts.semibold,
-    fontSize: 16,
-    color: colors.text,
-  },
-  radioDesc: {
-    fontFamily: fonts.regular,
-    fontSize: 13,
-    color: colors.textSub,
   },
   notice: {
     fontFamily: fonts.regular,

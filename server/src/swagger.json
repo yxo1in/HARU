@@ -261,7 +261,9 @@
                     "nickname": { "type": "string", "example": "tester" },
                     "jobRoleId": { "type": "integer", "nullable": true, "example": 1 },
                     "jobRoleName": { "type": "string", "nullable": true, "example": "프론트엔드 개발자" },
-                    "email": { "type": "string", "nullable": true, "example": null }
+                    "email": { "type": "string", "nullable": true, "example": null },
+                    "loginId": { "type": "string", "nullable": true, "description": "아이디 가입이면 아이디, 구글 가입이면 null", "example": "tester" },
+                    "answerCount": { "type": "integer", "description": "정식 답변 수 (탈퇴 확인 문구용)", "example": 24 }
                   }
                 }
               }

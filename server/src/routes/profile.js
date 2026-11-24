@@ -5,7 +5,9 @@ const bcrypt = require("bcrypt");
 
 router.get("/", async (req, res) => {
   const [rows] = await pool.query(
-    `SELECT u.nickname, u.email, j.id AS jobRoleId, j.name AS jobRoleName FROM users u
+    `SELECT u.nickname, u.email, u.login_id AS loginId, j.id AS jobRoleId, j.name AS jobRoleName,
+        (SELECT COUNT(*) FROM answers a WHERE a.user_id = u.id AND a.retry_of_answer_id IS NULL) AS answerCount
+        FROM users u
         LEFT JOIN job_roles j ON j.id = u.job_role_id
         WHERE u.id = ?`,
     [req.userId],
@@ -19,6 +21,10 @@ router.get("/", async (req, res) => {
     jobRoleId: rows[0].jobRoleId,
     jobRoleName: rows[0].jobRoleName,
     email: rows[0].email,
+    // 내 정보 화면 "아이디 ○○로 가입" (구글 회원은 null)
+    loginId: rows[0].loginId,
+    // 탈퇴 확인 창 "답변 N개와 첨삭이 지워져요" (정식 답변 수)
+    answerCount: rows[0].answerCount,
   });
 });
 
