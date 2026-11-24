@@ -3,6 +3,8 @@ const dark = {
   // v4
   v4ChevronDown: require("@/assets/images/v4/dark/chevron-down.svg"),
   v4Perforation: require("@/assets/images/v4/dark/perforation.svg"),
+  v4PerforationSm: require("@/assets/images/v4/dark/perforation-sm.svg"),
+  v4BlankLines: require("@/assets/images/v4/dark/blank-lines.svg"),
   v4Check: require("@/assets/images/v4/dark/check.svg"),
   v4Checkbox: require("@/assets/images/v4/dark/checkbox.svg"),
   v4RadioOn: require("@/assets/images/v4/dark/radio-on.svg"),
@@ -53,6 +55,8 @@ const light: typeof dark = {
   // v4
   v4ChevronDown: require("@/assets/images/v4/light/chevron-down.svg"),
   v4Perforation: require("@/assets/images/v4/light/perforation.svg"),
+  v4PerforationSm: require("@/assets/images/v4/light/perforation-sm.svg"),
+  v4BlankLines: require("@/assets/images/v4/light/blank-lines.svg"),
   v4Check: require("@/assets/images/v4/light/check.svg"),
   v4Checkbox: require("@/assets/images/v4/light/checkbox.svg"),
   v4RadioOn: require("@/assets/images/v4/light/radio-on.svg"),

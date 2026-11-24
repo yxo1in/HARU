@@ -56,6 +56,7 @@ export const darkColors = {
   chartBand: "rgba(255,216,77,0.3)", // 기록 차트 80점 띠
   onAccent: "#000000", // 강조색 위 글자 (기록 줄 일력의 "11월")
   accentSoft: "#3a3214", // 점수 동그라미 바탕
+  skeleton: "#000000", // 불러오는 중 회색 막대
 
   // v3 이름
   bgPrimary: "#1c1c1e",
@@ -113,6 +114,7 @@ export const lightColors: ThemeColors = {
   chartBand: "rgba(255,227,71,0.55)",
   onAccent: "#ffffff",
   accentSoft: "#fde8e4",
+  skeleton: "#f0f0ec",
 
   // v3 이름
   bgPrimary: "#ffffff",
