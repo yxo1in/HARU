@@ -37,6 +37,9 @@ app.use("/api/profile", auth, require("./routes/profile"));
 app.use("/api/stats", auth, require("./routes/stats"));
 app.use("/api/answers", auth, require("./routes/answers"));
 
+// 질문 생성
+app.use("/api/questions", auth, require("./routes/questions"));
+
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });

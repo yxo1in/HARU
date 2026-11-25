@@ -15,7 +15,10 @@ router.get("/", async (req, res) => {
     return res.status(400).json({ error: "질문 유형이 올바르지 않아요." });
   }
 
-  const cursor = req.query.cursor === undefined ? null : Number.parseInt(req.query.cursor, 10);
+  const cursor =
+    req.query.cursor === undefined
+      ? null
+      : Number.parseInt(req.query.cursor, 10);
   if (cursor !== null && !(cursor > 0)) {
     return res.status(400).json({ error: "cursor 값이 올바르지 않아요." });
   }
