@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const pool = require("../db");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
+const { OAuth2Client } = require("google-auth-library");
 
 // 로그인 관련 api 추가
 
@@ -103,6 +104,72 @@ router.post("/login", async (req, res) => {
   res.json({
     accessToken,
     user: { id: user.id, login_id: user.login_id, nickname: user.nickname },
+  });
+});
+
+// 구글 로그인: 앱이 구글에서 받은 ID 토큰을 검증하고, 처음이면 가입까지 한 뒤 우리 JWT 발급
+const googleClient = new OAuth2Client();
+
+router.post("/google", async (req, res) => {
+  const { idToken } = req.body;
+  if (typeof idToken !== "string" || !idToken) {
+    return res.status(400).json({ error: "구글 로그인 정보가 없어요." });
+  }
+
+  // 서명, 만료, 우리 앱용 토큰(audience)인지 확인
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    payload = ticket.getPayload();
+  } catch (err) {
+    console.error("구글 토큰 검증 실패", err.message);
+    return res.status(401).json({ error: "구글 로그인에 실패했어요." });
+  }
+
+  const [rows] = await pool.query(
+    "SELECT id, nickname, job_role_id AS jobRoleId FROM users WHERE google_sub = ?",
+    [payload.sub],
+  );
+  let user = rows[0];
+  let isNewUser = false;
+
+  // 처음 로그인이면 가입. 닉네임은 "하루" + 숫자 4자리, 겹치면 숫자를 바꿔 다시 시도
+  if (!user) {
+    for (let i = 0; i < 5 && !user; i++) {
+      const nickname = `하루${Math.floor(1000 + Math.random() * 9000)}`;
+      try {
+        const [result] = await pool.query(
+          `INSERT INTO users (provider, google_sub, email, nickname)
+            VALUES ('google', ?, ?, ?)`,
+          [payload.sub, payload.email ?? null, nickname],
+        );
+        user = { id: result.insertId, nickname, jobRoleId: null };
+        isNewUser = true;
+      } catch (err) {
+        if (err.code !== "ER_DUP_ENTRY") throw err;
+        // 같은 구글 계정으로 동시에 가입 요청이 온 경우면 이미 만들어진 회원을 씀
+        const [again] = await pool.query(
+          "SELECT id, nickname, job_role_id AS jobRoleId FROM users WHERE google_sub = ?",
+          [payload.sub],
+        );
+        if (again[0]) user = again[0];
+      }
+    }
+    if (!user) {
+      return res.status(500).json({ error: "회원 가입을 마치지 못했어요." });
+    }
+  }
+
+  const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+    expiresIn: "14d",
+  });
+  res.json({
+    accessToken,
+    isNewUser,
+    user: { id: user.id, nickname: user.nickname, jobRoleId: user.jobRoleId },
   });
 });
 
