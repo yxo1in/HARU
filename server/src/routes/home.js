@@ -1,12 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
-
-function addDays(date, n) {
-  const d = new Date(`${date}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
+const { todayKST, addDays } = require("../lib/date");
 
 router.get("/", async (req, res) => {
   const [rows] = await pool.query(
@@ -26,9 +21,7 @@ router.get("/", async (req, res) => {
     [req.userId],
   );
 
-  const today = new Date(Date.now() + 9 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
+  const today = todayKST();
 
   const last7Days = [];
   const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];

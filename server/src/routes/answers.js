@@ -339,16 +339,3 @@ router.get("/:id", async (req, res) => {
 });
 
 module.exports = router;
-
-// ===================================================================
-// TODO: 답변 API 남은 것
-// ===================================================================
-// (완료) TODO(1) AI 채점 함수 grader.js / TODO(3) POST / / TODO(4) delta 계산
-//        TODO(5) POST /:id/feedback / TODO(6) GET /:id
-// TODO(2): home.js 의 today 계산(9시간 더하기)과 addDays 를 lib/date.js 로 바꿔 쓰기
-//          (answers.js 는 이미 lib/date.js 의 todayKST 사용 중)
-// TODO(7): 오래된 pending 정리 — index.js 에서 서버 시작 시 + 5분마다
-//          UPDATE answers SET feedback_status = 'failed'
-//          WHERE feedback_status = 'pending' AND created_at < NOW() - INTERVAL 5 MINUTE
-// TODO(8): swagger.json 에 POST /api/answers, POST /api/answers/{id}/feedback,
-//          GET /api/answers/{id}, POST /api/questions/postQuestion 추가

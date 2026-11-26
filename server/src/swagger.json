@@ -12,7 +12,9 @@
     { "name": "job-roles", "description": "직무 목록" },
     { "name": "home", "description": "홈 화면" },
     { "name": "profile", "description": "내 프로필 / 계정 관리" },
-    { "name": "record", "description": "기록 탭 (통계 / 기록 목록)" }
+    { "name": "record", "description": "기록 탭 (통계 / 기록 목록)" },
+    { "name": "question", "description": "질문 생성" },
+    { "name": "answer", "description": "답변 제출 / 채점 / 기록 상세" }
   ],
   "paths": {
     "/api/health": {
@@ -561,6 +563,7 @@
                         "type": "object",
                         "properties": {
                           "id": { "type": "integer", "example": 42 },
+                          "questionId": { "type": "integer", "example": 12 },
                           "answerDate": { "type": "string", "format": "date", "example": "2026-11-23" },
                           "category": { "type": "string", "enum": ["intro", "motivation", "personality", "technical"], "example": "motivation" },
                           "question": { "type": "string", "example": "우리 회사에 지원한 이유는 무엇인가요?" },
@@ -588,6 +591,173 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "500": { "$ref": "#/components/responses/InternalError" }
         }
+      },
+      "post": {
+        "tags": ["answer"],
+        "summary": "답변 제출 + 채점",
+        "description": "답변을 저장하고 바로 AI 채점. 채점이 실패해도 답변은 남고 feedbackStatus 가 failed, feedback 이 null. 정식 답변은 하루 1번, 재답변은 원본 하나당 하루 5번",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["questionId", "content"],
+                "properties": {
+                  "questionId": { "type": "integer", "example": 12 },
+                  "content": { "type": "string", "description": "1~1000자", "example": "저는 사람들이 매일 쓰는 서비스를 만들고 싶어서 지원했습니다." },
+                  "retryOfAnswerId": { "type": "integer", "nullable": true, "description": "재답변이면 원본(정식) 답변 id", "example": 42 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "저장 성공 (채점 성공 또는 실패)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GradeResult" } } }
+          },
+          "400": {
+            "description": "답변 길이 또는 번호가 올바르지 않음",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "답변은 1~1000자로 적어 주세요." } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": {
+            "description": "질문이 없거나 다른 회원 전용 질문",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "질문을 찾을 수 없어요." } } }
+          },
+          "409": {
+            "description": "오늘 정식 답변을 이미 함",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "오늘 정식 답변은 이미 했어요." } } }
+          },
+          "422": {
+            "description": "재답변 원본이 없음 (내 정식 답변이 아니거나 질문이 다름)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "다시 답할 원본 답변을 찾을 수 없어요." } } }
+          },
+          "429": {
+            "description": "오늘 이 답변의 재답변을 5번 다 함",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "재답변은 하루에 5번까지 할 수 있어요." } } }
+          },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/answers/{id}": {
+      "get": {
+        "tags": ["answer"],
+        "summary": "기록 상세",
+        "description": "답변 + 질문 + 첨삭 + 점수 변화 + 재답변 목록. 점수 변화는 재답변이면 원본, 정식 답변이면 바로 이전 정식 답변과 비교. 재답변 id 로 조회하면 retries 는 빈 배열",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" }, "example": 42 }
+        ],
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AnswerDetail" } } }
+          },
+          "400": {
+            "description": "id 가 올바르지 않음",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "답변 번호가 올바르지 않아요." } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": {
+            "description": "다른 회원의 답변",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "내 기록만 볼 수 있어요." } } }
+          },
+          "404": {
+            "description": "답변이 없음",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "기록을 찾을 수 없어요." } } }
+          },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/answers/{id}/feedback": {
+      "post": {
+        "tags": ["answer"],
+        "summary": "다시 채점",
+        "description": "채점에 실패한(feedbackStatus = failed) 내 답변을 같은 내용으로 다시 채점",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" }, "example": 42 }
+        ],
+        "responses": {
+          "200": {
+            "description": "채점 시도 완료 (다시 실패하면 feedback 이 null)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GradeResult" } } }
+          },
+          "400": {
+            "description": "id 가 올바르지 않음",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "답변 번호가 올바르지 않아요." } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": {
+            "description": "다른 회원의 답변",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "내 답변만 채점할 수 있어요." } } }
+          },
+          "404": {
+            "description": "답변이 없음",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "답변을 찾을 수 없어요." } } }
+          },
+          "409": {
+            "description": "채점 실패 상태가 아님 (이미 채점됨 또는 채점 중)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "다시 채점할 답변이 아니에요." } } }
+          },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/questions/postQuestion": {
+      "post": {
+        "tags": ["question"],
+        "summary": "질문 생성",
+        "description": "회원 직무에 맞춰 AI 가 새 질문을 만들고 저장 (그 회원 전용 질문). category 를 생략하면 네 가지 중 랜덤",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "category": { "type": "string", "enum": ["intro", "motivation", "personality", "technical"], "example": "technical" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "생성 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer", "example": 30 },
+                    "category": { "type": "string", "enum": ["intro", "motivation", "personality", "technical"], "example": "technical" },
+                    "content": { "type": "string", "example": "React에서 상태 관리가 필요한 경우 어떤 방법을 선택하시고, 그 이유와 장단점을 설명해 주세요." }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "질문 유형이 올바르지 않거나 직무를 아직 고르지 않음",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "직무를 먼저 골라 주세요." } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": {
+            "description": "회원이 없음",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "회원 정보를 찾을 수 없어요." } } }
+          },
+          "500": {
+            "description": "AI 질문 생성 실패 또는 서버 오류",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "질문을 만들지 못했어요." } } }
+          }
+        }
       }
     }
   },
@@ -609,6 +779,67 @@
         "properties": {
           "id": { "type": "integer", "example": 1 },
           "name": { "type": "string", "example": "프론트엔드 개발자" }
+        }
+      },
+      "Feedback": {
+        "type": "object",
+        "properties": {
+          "score": { "type": "integer", "minimum": 0, "maximum": 100, "example": 82 },
+          "strength": { "type": "string", "example": "회사 서비스를 구체적으로 언급했어요." },
+          "weakness": { "type": "string", "example": "지원 이유가 내 경험과 잘 이어지지 않아요." },
+          "suggestion": { "type": "string", "example": "직접 만든 프로젝트를 예로 들어 보세요." }
+        }
+      },
+      "GradeResult": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer", "example": 42 },
+              "feedbackStatus": { "type": "string", "enum": ["done", "failed"], "example": "done" }
+            }
+          },
+          "feedback": { "allOf": [{ "$ref": "#/components/schemas/Feedback" }], "nullable": true, "description": "채점 실패면 null" }
+        }
+      },
+      "AnswerDetail": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 42 },
+          "questionId": { "type": "integer", "example": 12 },
+          "category": { "type": "string", "enum": ["intro", "motivation", "personality", "technical"], "example": "motivation" },
+          "question": { "type": "string", "example": "우리 회사에 지원한 이유는 무엇인가요?" },
+          "content": { "type": "string", "example": "저는 사람들이 매일 쓰는 서비스를 만들고 싶어서 지원했습니다." },
+          "answerDate": { "type": "string", "format": "date", "example": "2026-11-23" },
+          "createdAt": { "type": "string", "format": "date-time", "example": "2026-11-23T06:40:00.000Z" },
+          "retryOfAnswerId": { "type": "integer", "nullable": true, "description": "재답변이면 원본 답변 id", "example": null },
+          "feedbackStatus": { "type": "string", "enum": ["pending", "done", "failed"], "example": "done" },
+          "feedback": { "allOf": [{ "$ref": "#/components/schemas/Feedback" }], "nullable": true, "description": "채점 완료가 아니면 null" },
+          "delta": { "type": "integer", "nullable": true, "description": "비교 대상과의 점수 차이. 비교 대상이 없으면 null", "example": 8 },
+          "previous": {
+            "type": "object",
+            "nullable": true,
+            "description": "비교 대상 (재답변이면 원본, 정식 답변이면 이전 정식 답변)",
+            "properties": {
+              "date": { "type": "string", "format": "date", "example": "2026-11-22" },
+              "score": { "type": "integer", "example": 74 }
+            }
+          },
+          "retries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "example": 43 },
+                "createdAt": { "type": "string", "format": "date-time", "example": "2026-11-23T06:40:00.000Z" },
+                "feedbackStatus": { "type": "string", "enum": ["pending", "done", "failed"], "example": "done" },
+                "score": { "type": "integer", "nullable": true, "example": 88 },
+                "delta": { "type": "integer", "nullable": true, "description": "원본 대비 점수 차이", "example": 6 }
+              }
+            }
+          },
+          "retriesLeftToday": { "type": "integer", "description": "오늘 원본 답변에 더 할 수 있는 재답변 수", "example": 4 }
         }
       }
     },
