@@ -1,15 +1,18 @@
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
 import { DailyPad } from "@/components/daily-pad";
+import { GoogleButton } from "@/components/google-button";
 import { ScoreCircle } from "@/components/score-circle";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
-import { fonts, spacing, type ThemeColors } from "@/constants/theme";
+import { fonts, radius, spacing, type ThemeColors } from "@/constants/theme";
 import { todayString } from "@/lib/records";
-import { getToken } from "@/lib/token";
+import { getToken, saveToken } from "@/lib/token";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // 웰컴: 오늘 날짜 일력에 예시 질문과 점수를 보여주고, 아래에 로그인 버튼
 export default function Index() {
@@ -17,6 +20,36 @@ export default function Index() {
   const { scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const [checked, setChecked] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  // 안내 문구는 3초 뒤에 사라짐
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(""), 3000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
+  // 구글이 준 ID 토큰을 서버에 보내서 우리 토큰으로 바꿈. 직무가 없으면(처음 가입) 직무 선택으로
+  const loginWithGoogle = useCallback(async (idToken: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setNotice(data.error ?? "구글 로그인에 실패했어요");
+        return;
+      }
+      await saveToken(data.accessToken);
+      router.replace(data.user.jobRoleId ? "/home" : "/select-job");
+    } catch {
+      setNotice("구글 로그인에 실패했어요");
+    }
+  }, []);
+
+  const googleUnavailable = useCallback(() => setNotice("구글 로그인은 준비 중이에요"), []);
 
   // 이미 로그인한 기기면 바로 홈으로
   useEffect(() => {
@@ -55,12 +88,14 @@ export default function Index() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
-        {/* 구글 로그인은 아직 없어서 지금은 홈으로 바로 이동 */}
-        <Button
-          label="Google로 계속하기"
-          style={styles.button}
-          onPress={() => router.replace("/home")}
-        />
+        {/* 버튼 바로 위에 떠 있는 안내 문구 */}
+        {notice ? (
+          <View style={styles.toast} pointerEvents="none">
+            <Text style={styles.toastText}>{notice}</Text>
+          </View>
+        ) : null}
+        {/* 웹은 구글 버튼, 앱은 아직 준비 중 안내 (google-button.web.tsx / google-button.tsx) */}
+        <GoogleButton onCredential={loginWithGoogle} onUnavailable={googleUnavailable} />
         <Button
           label="아이디로 로그인"
           variant="secondary"
@@ -143,6 +178,24 @@ const createStyles = (colors: ThemeColors) =>
       paddingTop: spacing.md,
       paddingHorizontal: spacing.xl,
       backgroundColor: colors.bg,
+    },
+    // 하단 버튼 영역 바로 위에 뜨는 안내 (내 정보 화면 토스트와 같은 모양)
+    toast: {
+      position: "absolute",
+      left: spacing.xl,
+      right: spacing.xl,
+      bottom: "100%",
+      marginBottom: spacing.sm,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      borderRadius: radius.md,
+      backgroundColor: colors.buttonBg,
+      alignItems: "center",
+    },
+    toastText: {
+      fontFamily: fonts.medium,
+      fontSize: 14,
+      color: colors.buttonText,
     },
     button: {
       alignSelf: "stretch",
