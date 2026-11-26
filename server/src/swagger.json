@@ -163,6 +163,60 @@
         }
       }
     },
+    "/api/auth/google": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "구글 로그인 (웹)",
+        "description": "웹 구글 버튼(Google Identity Services)이 준 ID 토큰을 검증하고 로그인. 처음이면 자동 가입 (닉네임 하루 + 숫자 4자리). jobRoleId 가 null 이면 앱에서 직무 선택 화면으로",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["idToken"],
+                "properties": {
+                  "idToken": { "type": "string", "example": "eyJhbGciOiJSUzI1NiIs..." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "로그인 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIs..." },
+                    "isNewUser": { "type": "boolean", "example": true },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "integer", "example": 7 },
+                        "nickname": { "type": "string", "example": "하루4821" },
+                        "jobRoleId": { "type": "integer", "nullable": true, "example": null }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "idToken 없음",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "구글 로그인 정보가 없어요." } } }
+          },
+          "401": {
+            "description": "구글 토큰 검증 실패 (만료, 다른 앱용 토큰 등)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "구글 로그인에 실패했어요." } } }
+          },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
     "/api/job-roles": {
       "get": {
         "tags": ["job-roles"],

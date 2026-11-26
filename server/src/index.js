@@ -22,6 +22,7 @@ app.get("/api/health", async (req, res) => {
 // API 문서 (Swagger UI)
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+// 로그인 & 회원 직무 정보
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/job-roles", require("./routes/jobRoles"));
 
