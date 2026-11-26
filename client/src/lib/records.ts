@@ -12,6 +12,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 // GET /api/answers 의 items 한 개
 export type RecordListItem = {
   id: number;
+  questionId: number;
   answerDate: string;
   category: Category;
   question: string;
@@ -40,4 +41,52 @@ export function formatDate(date: string) {
 // 목록에 보여줄 "지원동기, 오늘" 같은 한 줄
 export function recordMeta(item: RecordListItem) {
   return `${CATEGORY_LABELS[item.category]}, ${formatDate(item.answerDate)}`;
+}
+
+// GET /api/answers/:id (기록 상세, 첨삭 결과 화면)
+export type Feedback = {
+  score: number;
+  strength: string;
+  weakness: string;
+  suggestion: string;
+};
+
+export type RetryItem = {
+  id: number;
+  createdAt: string;
+  feedbackStatus: "pending" | "done" | "failed";
+  score: number | null;
+  delta: number | null;
+};
+
+export type AnswerDetail = {
+  id: number;
+  questionId: number;
+  category: Category;
+  question: string;
+  content: string;
+  answerDate: string;
+  createdAt: string;
+  retryOfAnswerId: number | null;
+  feedbackStatus: "pending" | "done" | "failed";
+  feedback: Feedback | null;
+  delta: number | null;
+  previous: { date: string; score: number } | null;
+  retries: RetryItem[];
+  retriesLeftToday: number;
+};
+
+// POST /api/answers, POST /api/answers/:id/feedback 응답
+export type GradeResult = {
+  answer: { id: number; feedbackStatus: "done" | "failed" };
+  feedback: Feedback | null;
+};
+
+// ISO 시각 → "11월 23일 오후 3:40" (기기 시간대 기준)
+export function formatDateTime(iso: string) {
+  const d = new Date(iso);
+  const hour = d.getHours();
+  const ampm = hour < 12 ? "오전" : "오후";
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${ampm} ${h12}:${pad(d.getMinutes())}`;
 }

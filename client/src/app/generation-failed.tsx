@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/button";
@@ -12,6 +12,10 @@ export default function GenerationFailed() {
   const styles = useThemedStyles(createStyles);
   const { assets } = useTheme();
   const insets = useSafeAreaInsets();
+  // 다시 시도할 때 처음 고른 질문 유형을 그대로 넘김 (랜덤이면 없음)
+  const { category } = useLocalSearchParams<{ category?: string }>();
+  const retry = () =>
+    router.replace({ pathname: "/generating", params: category ? { category } : {} });
 
   return (
     <View style={styles.container}>
@@ -28,12 +32,12 @@ export default function GenerationFailed() {
         </Text>
       </View>
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
-        <Button label="다시 시도" style={styles.button} onPress={() => router.replace("/generating")} />
+        <Button label="다시 시도" style={styles.button} onPress={retry} />
         <Button
           label="준비된 질문 받기"
           variant="secondary"
           style={styles.button}
-          onPress={() => router.replace("/generating")}
+          onPress={retry}
         />
       </View>
     </View>

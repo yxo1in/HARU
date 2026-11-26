@@ -6,11 +6,10 @@ import { NavBar } from "@/components/nav-bar";
 import { SmallPad } from "@/components/small-pad";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
 import { fonts, spacing, type ThemeColors } from "@/constants/theme";
-import { getJson } from "@/lib/api";
+import { getJson, postJson } from "@/lib/api";
 import { CATEGORY_LABELS, todayString, type Category } from "@/lib/records";
 
-// API 연동 전까지 생성이 끝난 것처럼 잠깐 보여주고 답변 화면으로 넘어감
-const MOCK_GENERATING_MS = 2000;
+type NewQuestion = { id: number; category: Category; content: string };
 
 export default function Generating() {
   const styles = useThemedStyles(createStyles);
@@ -21,12 +20,37 @@ export default function Generating() {
   const [, month, day] = todayString().split("-").map(Number);
 
   useEffect(() => {
+    // 생성 중에 닫기를 눌러 나갔으면 응답이 와도 화면을 옮기지 않음
+    let cancelled = false;
+
     getJson<{ jobRoleName: string | null }>("/api/profile")
-      .then((profile) => setJobName(profile?.jobRoleName ?? null))
+      .then((profile) => {
+        if (!cancelled) setJobName(profile?.jobRoleName ?? null);
+      })
       .catch(() => {});
-    const timer = setTimeout(() => router.replace("/answer"), MOCK_GENERATING_MS);
-    return () => clearTimeout(timer);
-  }, []);
+
+    // 랜덤이면 category 없이 보내서 서버가 고르게 함
+    postJson<NewQuestion>("/api/questions/postQuestion", category ? { category } : {})
+      .then((question) => {
+        if (cancelled || !question) return;
+        router.replace({
+          pathname: "/answer",
+          params: {
+            questionId: String(question.id),
+            category: question.category,
+            content: question.content,
+          },
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        router.replace({ pathname: "/generation-failed", params: category ? { category } : {} });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [category]);
 
   return (
     <View style={styles.container}>

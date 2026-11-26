@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -15,7 +15,7 @@ import { Button } from "@/components/button";
 import { NavBar } from "@/components/nav-bar";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
 import { fonts, noWebOutline, spacing, type ThemeColors } from "@/constants/theme";
-import { todayString } from "@/lib/records";
+import { CATEGORY_LABELS, todayString, type Category } from "@/lib/records";
 
 const MAX_LENGTH = 1000;
 // 공책 한 줄 높이. 글자 줄 간격과 밑줄 간격을 같게 맞춤
@@ -23,13 +23,20 @@ const LINE_HEIGHT = 30;
 const LINE_COUNT = 10;
 const WEEKDAYS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
 
-// API 연동 전까지 쓰는 예시 질문
-const QUESTION = { category: "지원동기", text: "우리 회사에 지원한\n이유는 무엇인가요?" };
+// 질문은 생성 중 화면(generating)이 만들어서 params 로 넘겨줌
+// 재답변이면 retryOfAnswerId(원본 답변 id)도 같이 옴
+type AnswerParams = {
+  questionId?: string;
+  category?: Category;
+  content?: string;
+  retryOfAnswerId?: string;
+};
 
 export default function Answer() {
   const styles = useThemedStyles(createStyles);
   const { assets, colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { questionId, category, content, retryOfAnswerId } = useLocalSearchParams<AnswerParams>();
   const [answer, setAnswer] = useState("");
   const trimmedAnswer = answer.trim();
 
@@ -37,12 +44,17 @@ export default function Answer() {
   const [, month, day] = today.split("-").map(Number);
   const weekday = WEEKDAYS[new Date(`${today}T00:00:00Z`).getUTCDay()];
 
+  // 새로고침 등으로 질문 없이 들어오면 질문 탭으로 돌려보냄
+  if (!questionId || !category || !content) {
+    return <Redirect href="/question" />;
+  }
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <NavBar
         icon="close"
         onPress={() => router.navigate("/question")}
-        title={QUESTION.category}
+        title={CATEGORY_LABELS[category]}
       />
       <ScrollView
         style={styles.scroll}
@@ -51,7 +63,7 @@ export default function Answer() {
       >
         <View style={styles.sheet}>
           <Text style={styles.date}>{`${month}월 ${day}일 ${weekday}의 질문`}</Text>
-          <Text style={styles.question}>{QUESTION.text}</Text>
+          <Text style={styles.question}>{content}</Text>
           {/* 공책 줄 위에 파란 글씨로 쓰는 칸 */}
           <View style={styles.writing}>
             {Array.from({ length: LINE_COUNT }, (_, i) => (
@@ -70,15 +82,20 @@ export default function Answer() {
           </View>
         </View>
 
-        <Pressable
-          style={styles.other}
-          accessibilityRole="button"
-          onPress={() => router.replace("/generating")}
-        >
-          <Image source={assets.v4Refresh} style={styles.otherIcon} />
-          <Text style={styles.otherText}>다른 질문 받기</Text>
-        </Pressable>
-        <Text style={styles.otherHint}>제출하기 전에는 다른 질문으로 바꿀 수 있어요.</Text>
+        {/* 재답변은 같은 질문에 다시 답하는 거라 질문을 바꿀 수 없음 */}
+        {!retryOfAnswerId && (
+          <>
+            <Pressable
+              style={styles.other}
+              accessibilityRole="button"
+              onPress={() => router.replace({ pathname: "/generating", params: { category } })}
+            >
+              <Image source={assets.v4Refresh} style={styles.otherIcon} />
+              <Text style={styles.otherText}>다른 질문 받기</Text>
+            </Pressable>
+            <Text style={styles.otherHint}>제출하기 전에는 다른 질문으로 바꿀 수 있어요.</Text>
+          </>
+        )}
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
@@ -91,7 +108,16 @@ export default function Answer() {
           style={styles.submit}
           disabled={!trimmedAnswer}
           onPress={() =>
-            router.replace({ pathname: "/grading", params: { answer: trimmedAnswer } })
+            router.replace({
+              pathname: "/grading",
+              params: {
+                questionId,
+                category,
+                content,
+                answer: trimmedAnswer,
+                ...(retryOfAnswerId ? { retryOfAnswerId } : {}),
+              },
+            })
           }
         />
       </View>
