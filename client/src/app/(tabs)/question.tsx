@@ -115,7 +115,17 @@ function TodayDone({ answer }: { answer: RecordListItem }) {
           label="같은 질문 다시 답하기"
           variant="secondary"
           disabled={left === 0}
-          onPress={() => router.push("/answer")}
+          onPress={() =>
+            router.push({
+              pathname: "/answer",
+              params: {
+                questionId: String(answer.questionId),
+                category: answer.category,
+                content: answer.question,
+                retryOfAnswerId: String(answer.id),
+              },
+            })
+          }
         />
       </DailyPad>
       <Button

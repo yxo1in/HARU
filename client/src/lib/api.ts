@@ -34,6 +34,10 @@ export async function postJson<T>(path: string, body: unknown): Promise<T | null
     router.replace("/");
     return null;
   }
-  if (!res.ok) throw new Error(`${path} status ${res.status}`);
+  // 서버가 보낸 { error } 문구를 그대로 화면에 쓸 수 있게 에러 메시지로 넘김
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error ?? `${path} status ${res.status}`);
+  }
   return res.json();
 }

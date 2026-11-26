@@ -24,13 +24,19 @@ const LINE_COUNT = 10;
 const WEEKDAYS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
 
 // 질문은 생성 중 화면(generating)이 만들어서 params 로 넘겨줌
-type AnswerParams = { questionId?: string; category?: Category; content?: string };
+// 재답변이면 retryOfAnswerId(원본 답변 id)도 같이 옴
+type AnswerParams = {
+  questionId?: string;
+  category?: Category;
+  content?: string;
+  retryOfAnswerId?: string;
+};
 
 export default function Answer() {
   const styles = useThemedStyles(createStyles);
   const { assets, colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { questionId, category, content } = useLocalSearchParams<AnswerParams>();
+  const { questionId, category, content, retryOfAnswerId } = useLocalSearchParams<AnswerParams>();
   const [answer, setAnswer] = useState("");
   const trimmedAnswer = answer.trim();
 
@@ -76,15 +82,20 @@ export default function Answer() {
           </View>
         </View>
 
-        <Pressable
-          style={styles.other}
-          accessibilityRole="button"
-          onPress={() => router.replace({ pathname: "/generating", params: { category } })}
-        >
-          <Image source={assets.v4Refresh} style={styles.otherIcon} />
-          <Text style={styles.otherText}>다른 질문 받기</Text>
-        </Pressable>
-        <Text style={styles.otherHint}>제출하기 전에는 다른 질문으로 바꿀 수 있어요.</Text>
+        {/* 재답변은 같은 질문에 다시 답하는 거라 질문을 바꿀 수 없음 */}
+        {!retryOfAnswerId && (
+          <>
+            <Pressable
+              style={styles.other}
+              accessibilityRole="button"
+              onPress={() => router.replace({ pathname: "/generating", params: { category } })}
+            >
+              <Image source={assets.v4Refresh} style={styles.otherIcon} />
+              <Text style={styles.otherText}>다른 질문 받기</Text>
+            </Pressable>
+            <Text style={styles.otherHint}>제출하기 전에는 다른 질문으로 바꿀 수 있어요.</Text>
+          </>
+        )}
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
@@ -97,10 +108,15 @@ export default function Answer() {
           style={styles.submit}
           disabled={!trimmedAnswer}
           onPress={() =>
-            // questionId 는 답변 제출 API(POST /api/answers)에 쓸 값
             router.replace({
               pathname: "/grading",
-              params: { questionId, category, content, answer: trimmedAnswer },
+              params: {
+                questionId,
+                category,
+                content,
+                answer: trimmedAnswer,
+                ...(retryOfAnswerId ? { retryOfAnswerId } : {}),
+              },
             })
           }
         />

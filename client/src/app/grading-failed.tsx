@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { router, useLocalSearchParams } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnswerSheet } from "@/components/answer-sheet";
@@ -8,28 +8,37 @@ import { NavBar } from "@/components/nav-bar";
 import { EmptyScoreCircle } from "@/components/score-circle";
 import { useTheme, useThemedStyles } from "@/components/theme-provider";
 import { fonts, spacing, type ThemeColors } from "@/constants/theme";
-import { MOCK_ANSWER, MOCK_QUESTION } from "@/lib/mock-answer";
+import { CATEGORY_LABELS, type Category } from "@/lib/records";
 
 // 채점(AI)이 30초 안에 안 끝났을 때. 답변은 저장돼 있어서 같은 답변으로 다시 채점할 수 있음
 export default function GradingFailed() {
   const styles = useThemedStyles(createStyles);
   const { assets } = useTheme();
   const insets = useSafeAreaInsets();
-  const { answer } = useLocalSearchParams<{ answer?: string }>();
-  const text = answer ?? MOCK_ANSWER;
+  const { answerId, category, content, answer } = useLocalSearchParams<{
+    answerId?: string;
+    category?: Category;
+    content?: string;
+    answer?: string;
+  }>();
+
+  if (!answerId || !category || !content || !answer) {
+    return <Redirect href="/record" />;
+  }
+  const label = CATEGORY_LABELS[category];
 
   return (
     <View style={styles.container}>
       <NavBar
         icon="close"
-        title={MOCK_QUESTION.category}
+        title={label}
         onPress={() => router.navigate("/question")}
       />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.body}>
         <AnswerSheet
-          category={MOCK_QUESTION.category}
-          question={MOCK_QUESTION.text}
-          answer={text}
+          category={label}
+          question={content}
+          answer={answer}
           mark={<EmptyScoreCircle />}
         >
           <View style={styles.saved}>
@@ -48,7 +57,9 @@ export default function GradingFailed() {
         <Button
           label="다시 채점"
           style={styles.button}
-          onPress={() => router.replace({ pathname: "/grading", params: { answer: text } })}
+          onPress={() =>
+            router.replace({ pathname: "/grading", params: { answerId, category, content, answer } })
+          }
         />
         <Button
           label="나중에 기록에서 채점하기"

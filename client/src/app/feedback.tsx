@@ -5,59 +5,91 @@ import { AnswerSheet } from "@/components/answer-sheet";
 import { Button } from "@/components/button";
 import { FeedbackMarks } from "@/components/feedback-marks";
 import { NavBar } from "@/components/nav-bar";
-import { ScoreCircle } from "@/components/score-circle";
+import { EmptyScoreCircle, ScoreCircle } from "@/components/score-circle";
 import { useThemedStyles } from "@/components/theme-provider";
 import { fonts, spacing, type ThemeColors } from "@/constants/theme";
-import { MOCK_ANSWER, MOCK_FEEDBACK, MOCK_QUESTION } from "@/lib/mock-answer";
+import { CATEGORY_LABELS } from "@/lib/records";
+import { deltaText, formatDelta, useAnswerDetail } from "@/lib/use-answer-detail";
 
-// 첨삭 결과. 채점 API 연동 전까지 점수와 첨삭은 예시 데이터, 답변은 방금 쓴 글
+// 첨삭 결과. 채점 화면이 넘겨준 답변 id 로 기록 상세를 불러와서 보여줌
 export default function Feedback() {
   const styles = useThemedStyles(createStyles);
-  const { answer } = useLocalSearchParams<{ answer?: string }>();
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const insets = useSafeAreaInsets();
-  const feedback = MOCK_FEEDBACK;
+  const { detail, error } = useAnswerDetail(id);
+  const close = () => router.navigate("/question");
+
+  if (!detail) {
+    return (
+      <View style={styles.container}>
+        <NavBar icon="close" title="첨삭 결과" onPress={close} />
+        <Text style={styles.status}>
+          {error || !id ? "첨삭을 불러오지 못했어요." : "불러오고 있어요"}
+        </Text>
+      </View>
+    );
+  }
+
+  const { feedback } = detail;
+  const label = CATEGORY_LABELS[detail.category];
+  // 재답변은 항상 원본 답변에 붙임
+  const originalId = detail.retryOfAnswerId ?? detail.id;
+  const left = detail.retriesLeftToday;
 
   return (
     <View style={styles.container}>
-      <NavBar icon="close" title="첨삭 결과" onPress={() => router.navigate("/question")} />
+      <NavBar icon="close" title="첨삭 결과" onPress={close} />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.body}>
         <AnswerSheet
-          category={MOCK_QUESTION.category}
-          question={MOCK_QUESTION.text}
-          answer={answer ?? MOCK_ANSWER}
-          mark={<ScoreCircle score={feedback.score} size={78} />}
+          category={detail.retryOfAnswerId ? `${label}, 재답변` : label}
+          question={detail.question}
+          answer={detail.content}
+          mark={feedback ? <ScoreCircle score={feedback.score} size={78} /> : <EmptyScoreCircle />}
           belowQuestion={
-            <View style={styles.delta}>
-              <Text style={styles.deltaValue}>
-                {feedback.delta > 0 ? `+${feedback.delta}` : feedback.delta}
-              </Text>
-              <Text style={styles.deltaText}>
-                {`지난 정식 답변(${feedback.previous.date}, ${feedback.previous.score}점)보다 ${
-                  feedback.delta >= 0 ? "올랐어요" : "내려갔어요"
-                }`}
-              </Text>
-            </View>
+            detail.delta !== null ? (
+              <View style={styles.delta}>
+                <Text style={styles.deltaValue}>{formatDelta(detail.delta)}</Text>
+                <Text style={styles.deltaText}>{deltaText(detail)}</Text>
+              </View>
+            ) : undefined
           }
         >
-          <View style={styles.divider} />
-          <FeedbackMarks
-            strength={feedback.strength}
-            weakness={feedback.weakness}
-            suggestion={feedback.suggestion}
-          />
+          {feedback && (
+            <>
+              <View style={styles.divider} />
+              <FeedbackMarks
+                strength={feedback.strength}
+                weakness={feedback.weakness}
+                suggestion={feedback.suggestion}
+              />
+            </>
+          )}
         </AnswerSheet>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
-        <Text style={styles.retryHint}>재답변은 하루에 5번까지 할 수 있어요.</Text>
+        <Text style={styles.retryHint}>
+          {left > 0 ? `오늘 ${left}번 더 다시 답할 수 있어요.` : "오늘은 더 다시 답할 수 없어요."}
+        </Text>
         <View style={styles.actions}>
           <Button
             label="같은 질문 다시 답하기"
             variant="secondary"
             style={styles.retry}
-            onPress={() => router.replace("/answer")}
+            disabled={left === 0}
+            onPress={() =>
+              router.replace({
+                pathname: "/answer",
+                params: {
+                  questionId: String(detail.questionId),
+                  category: detail.category,
+                  content: detail.question,
+                  retryOfAnswerId: String(originalId),
+                },
+              })
+            }
           />
-          <Button label="완료" style={styles.done} onPress={() => router.navigate("/question")} />
+          <Button label="완료" style={styles.done} onPress={close} />
         </View>
       </View>
     </View>
@@ -71,6 +103,13 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   scroll: {
     flex: 1,
+  },
+  status: {
+    paddingTop: 48,
+    textAlign: "center",
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    color: colors.textSub,
   },
   body: {
     paddingTop: spacing.sm,
